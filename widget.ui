@@ -6,41 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>506</height>
+    <width>718</width>
+    <height>671</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
+  <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
-     </property>
-     <item row="1" column="1">
-      <widget class="QLabel" name="label_title">
-       <property name="styleSheet">
-        <string notr="true">font: 87 20pt &quot;Noto Sans CJK KR&quot;</string>
-       </property>
-       <property name="text">
-        <string>matou</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_Left">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,12">
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_LOGO">
+         <property name="text">
+          <string>SIPAI_LAB</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
@@ -55,9 +39,14 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QLabel" name="label_title">
+         <property name="styleSheet">
+          <string notr="true">color: rgb(243, 243, 243);
+color: rgb(52, 101, 164);
+font: 20pt &quot;Cantarell&quot;;</string>
+         </property>
          <property name="text">
-          <string>PushButton</string>
+          <string>TextLabel</string>
          </property>
         </widget>
        </item>
@@ -75,82 +64,112 @@
         </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label_Alarm">
-         <property name="styleSheet">
-          <string notr="true">font: 25 20pt &quot;Noto Sans CJK KR&quot;;
-color: rgb(239, 41, 41);</string>
-         </property>
+        <widget class="QLabel" name="label_gap">
          <property name="text">
-          <string>ALARM</string>
+          <string/>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="pushButtonmMenu">
          <property name="text">
-          <string>PushButton</string>
+          <string/>
          </property>
         </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </item>
-     <item row="2" column="1">
-      <widget class="QStackedWidget" name="stackedWidget">
-       <widget class="QWidget" name="page">
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(136, 138, 133);</string>
-           </property>
-           <property name="text">
-            <string>Camera</string>
-           </property>
-          </widget>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,1">
+       <item>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="page">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_CameraA">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 87, 83);</string>
+               </property>
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_CameraB">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 87, 83);</string>
+               </property>
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_CameraC">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 87, 83);</string>
+               </property>
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_CameraD">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(85, 87, 83);</string>
+               </property>
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="page_2"/>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="LAB" name="lAB"/>
+         </item>
+         <item>
+          <widget class="LAB" name="lAB_2"/>
+         </item>
+         <item>
+          <widget class="LAB" name="lAB_3"/>
+         </item>
+         <item>
+          <widget class="LAB" name="lAB_5"/>
+         </item>
+         <item>
+          <widget class="LAB" name="lAB_4"/>
          </item>
         </layout>
-       </widget>
-       <widget class="QWidget" name="page_2"/>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QLabel" name="label_Right">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>LAB</class>
+   <extends>QWidget</extends>
+   <header>lab.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

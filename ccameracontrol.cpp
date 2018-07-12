@@ -130,7 +130,7 @@ LONG CCameraControl::StartRealPlay(bool b_save, int stream)
 {
     NET_DVR_PREVIEWINFO PlayInfo = {0};
     PlayInfo.hPlayWnd = NULL;
-    PlayInfo.lChannel = 1;
+    PlayInfo.lChannel = camid;
     PlayInfo.dwStreamType = stream;  //0 main  1 zimaliu
     PlayInfo.dwLinkMode = 0;
     PlayInfo.bBlocked = 1;

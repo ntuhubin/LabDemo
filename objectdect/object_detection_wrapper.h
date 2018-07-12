@@ -5,7 +5,7 @@
 
 using namespace std;
 
-enum DetectorType {TRUCK = 0};
+enum DetectorType {HUMAN = 0};
 
 struct ColorValues {
   int red;
@@ -32,16 +32,16 @@ struct DetectedObject {
 };
 
 struct DetectedObjectGroup {
-  int num_of_object;  
+  int num_of_object;
   vector<DetectedObject> detected_objects;
   DetectedObjectGroup() {
     num_of_object = 0;
-  } 
+  }
 };
 
-bool Detection(cv::Mat &input_img, DetectedObjectGroup* detected_object_group, 
+bool Detection(cv::Mat &input_img, DetectedObjectGroup* detected_object_group,
                const string& frozen_graph_path, DetectorType detector_type,
-               const float score_threshold = 0.8,
-               const int max_num_detections = 5);
+               const float score_threshold = 0.5,
+               const int max_num_detections = 10);
 
 #endif // OBJECT_DETECTION_WRAPPER_H_

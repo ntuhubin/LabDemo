@@ -7,17 +7,24 @@
 using tensorflow::int32;
 using tensorflow::uint8;
 
-namespace haohan_object_detector {
+namespace michi_object_detector {
 
 bool ObjectDetector::LoadGraph(const string& frozen_graph_path) {
   tensorflow::GraphDef graph_def;
-  Status load_graph_status = 
+  tensorflow::SessionOptions opts;
+
+  // Set GPU options
+  // tensorflow::graph::SetDefaultDevice("/gpu:0", &graph_def);
+  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.4);
+  opts.config.mutable_gpu_options()->set_allow_growth(true);
+
+  Status load_graph_status =
     ReadBinaryProto(tensorflow::Env::Default(), frozen_graph_path, &graph_def);
   if (!load_graph_status.ok()) {
     LOG(ERROR) << "Failed to load compute graph : " << frozen_graph_path;
     return false;
-  }  
-  detect_session.reset(tensorflow::NewSession(tensorflow::SessionOptions()));
+  }
+  detect_session.reset(tensorflow::NewSession(tensorflow::SessionOptions(opts)));
   Status session_create_status = detect_session->Create(graph_def);
   if (!session_create_status.ok()) {
     LOG(ERROR) << "Failed to create graph : ";
@@ -27,15 +34,15 @@ bool ObjectDetector::LoadGraph(const string& frozen_graph_path) {
 }
 
 bool ObjectDetector::Detect(const Mat &input_img,
-                            DetectedObjectGroup* detected_object_group, 
-               		    const float score_threshold, 
+                            DetectedObjectGroup* detected_object_group,
+                      const float score_threshold,
                             const int max_num_detections) const {
   const int height = input_img.rows;
   const int width = input_img.cols;
   const int depth = input_img.channels();
 
-  Tensor input_tensor(tensorflow::DT_UINT8, 
-		      tensorflow::TensorShape({1, height, width, depth}));
+  Tensor input_tensor(tensorflow::DT_UINT8,
+          tensorflow::TensorShape({1, height, width, depth}));
   auto input_tensor_mapped = input_tensor.tensor<unsigned char, 4>();
   unsigned char* input_img_data_ptr = (unsigned char*)(input_img.data);
   for (int y = 0; y < height; ++y) {
@@ -48,7 +55,7 @@ bool ObjectDetector::Detect(const Mat &input_img,
         }
     }
   }
-  
+
   string input_layer = "image_tensor:0";
   string output_location_layer = "detection_boxes:0";
   string output_score_layer = "detection_scores:0";
@@ -58,12 +65,12 @@ bool ObjectDetector::Detect(const Mat &input_img,
   std::vector<Tensor> outputs;
   Status run_status =
       detect_session->Run({{input_layer, input_tensor}},
-			  {output_score_layer, output_location_layer,
-	         	   output_class_layer}, {}, &outputs);
+        {output_score_layer, output_location_layer,
+               output_class_layer}, {}, &outputs);
   if (!run_status.ok()) {
     LOG(ERROR) << "Running model failed: " << run_status;
     return false;
-  } 
+  }
 
   Status store_detection_status =
       StoreTopDetections(outputs, width, height, detected_object_group,
@@ -71,14 +78,14 @@ bool ObjectDetector::Detect(const Mat &input_img,
   if (!store_detection_status.ok()) {
     LOG(ERROR) << "Store detection results failed: " << store_detection_status;
     return false;
-  } 
+  }
 
   return true;
 }
 
-Status ObjectDetector::GetTopDetections(const vector<Tensor>& outputs, 
+Status ObjectDetector::GetTopDetections(const vector<Tensor>& outputs,
                                         Tensor* indices, Tensor* scores,
-       				        const int max_num_detections) const {
+                      const int max_num_detections) const {
   auto root = tensorflow::Scope::NewRootScope();
   using namespace ::tensorflow::ops;  // NOLINT(build/namespaces)
 
@@ -132,7 +139,7 @@ Status ObjectDetector::StoreTopDetections(
     const int label_index = indices_flat(pos);
     const float score = scores_flat(pos);
     if (score < score_threshold) {
-	continue;
+  continue;
     }
     const float *location = &locations_flat(label_index * 4);
     float left = location[1] * image_width;
@@ -162,7 +169,7 @@ Status ObjectDetector::StoreTopDetections(
     detected_object_group->detected_objects.push_back(detect_object);
     detected_object_group->num_of_object++;
   }
-  
+
   return Status::OK();
 }
 

@@ -8,13 +8,13 @@ PyObject* CFaceClassification::load_model() {
 
   PyObject *pModel = NULL;
   PyObject *pConfig = NULL;
-  pModel = PyImport_ImportModule("model");
+  pModel = PyImport_ImportModule("model");  //model
   if (!pModel) {
           //printf("Cant open python file!\n");
           return NULL;
   }
   /* model.feature_extraction */
-  pConfig = PyObject_GetAttrString(pModel, "config");
+  pConfig = PyObject_GetAttrString(pModel, "config");  //config
 
   /* return model object */
   return PyObject_CallObject(pConfig, NULL);

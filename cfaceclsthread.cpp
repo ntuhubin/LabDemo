@@ -20,6 +20,13 @@ void CFaceClsThread::SetParam(QImage img,  int devID)
     mutex.unlock();
 
 }
+void CFaceClsThread::recvImg(QImage img, int idx)
+{
+    mutex.lock();
+    RecvImg = img.copy();
+    devid = idx;
+    mutex.unlock();
+}
 void CFaceClsThread::setStart()
 {
     stopflag = false;
@@ -86,14 +93,15 @@ void CFaceClsThread::run()
                     (pos[3] - pos[1] + 20 ) > img.height()? img.height() : (pos[3] - pos[1] + 20 ));
             cr.lable = face->ClsList[i].label;
             cr.belief = face->ClsList[i].belief;
-            cr.features = face->ClsList[i].features;
+            //cr.features = face->ClsList[i].features;
+            cr.rect = QRectF(pos[0],pos[1], pos[2]-pos[0],pos[3]-pos[1]);
             cr.capDate = QDateTime::currentDateTime();
             list.append(cr);
         }
 
         emit sendcls(list);
         isGet = true;
-        msleep(200);
+        msleep(100);
     }
 }
 /*int CFaceClsThread::UpdateCapList(ClsInfo clsinfo,  QImage dimg)

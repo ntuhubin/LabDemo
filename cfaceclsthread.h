@@ -14,6 +14,8 @@ class CFaceClsThread:public QThread
     Q_OBJECT
 signals:
     void sendcls(QList<ClsResult> dectresult);
+public slots:
+    void recvImg(QImage img, int idx);   //recieve from camera 1
 public:
     CFaceClsThread();
     CFaceClassification *face;
