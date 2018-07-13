@@ -51,7 +51,22 @@ int CHuamDectThd::DetectHuman(Mat img, int *rect, QImage qimg)
         objrls.rect = QRectF(detected_object.left,detected_object.top,detected_object.width,detected_object.height);
         objrls.img = qimg.copy(objrls.rect.toRect());
         if(objrls.ObjID == 1) //human
+        {
             list[dectindex].append(objrls);
+            cv::Mat ROIImg = publicFun::QImageToMat(objrls.img);
+            cvtColor( ROIImg, ROIImg,  COLOR_RGB2HSV);
+            // 对hue通道使用30个bin,对saturatoin通道使用32个bin
+            int h_bins = 64; int s_bins = 64;
+            int histSize[] = { h_bins, s_bins };
+            // hue的取值范围从0到256, saturation取值范围从0到180
+            float h_ranges[] = { 0, 256 };
+            float s_ranges[] = { 0, 180 };
+            const float* ranges[] = { h_ranges, s_ranges };
+            // 使用第0和第1通道
+            int channels[] = { 0, 1 };
+            calcHist( &ROIImg, 1, channels, Mat(), objrls.Hist, 2, histSize, ranges, true, false );
+            normalize( objrls.Hist, objrls.Hist, 0, 1, NORM_MINMAX, -1, Mat() );
+        }
         else if(objrls.ObjID == 3)  //an quan mao
             hatlist[dectindex].append(objrls);
       }

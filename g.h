@@ -4,16 +4,18 @@
 #include <QDate>
 #include <QRectF>
 #include <QImage>
+#include "opencv2/imgproc/imgproc.hpp"
 typedef struct
 {
     int CAMID;
-    int ObjID;
+    int ObjID;   //gong hao
     int withHat;   //如果是人，是否戴帽 0 不戴 1戴
     int ID;     //the same obj has a same ID from 1
     QString name;  //person's name or workid
     int leaveframe;
     QRectF rect;
     QImage img;   // capture image
+    cv::MatND Hist;   //hist of human, used for match
 }ObjdectRls;
 typedef struct
 {

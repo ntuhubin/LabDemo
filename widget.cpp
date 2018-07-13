@@ -109,55 +109,95 @@ void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
         return;
     mutex.lock();
     int count = objdects[idx].count();
+    int comcount = list.count();
     if(count == 0)
     {
         for(int i = 0; i < list.count(); i++)
         {
-            list[i].ObjID = currentObjID[idx];
+            list[i].ID = currentObjID[idx];
             objdects[idx].append(list.at(i));
             currentObjID[idx]++;
         }
     }
     else
     {
-        QMutableListIterator<ObjdectRls> it(objdects[idx]);
-        QMutableListIterator<ObjdectRls> newit(list);
-        while (it.hasNext())
+        if(count <= comcount)
         {
-            ObjdectRls rls = it.next();
-            bool isupdate = false;
-            newit.toFront();
-            while(newit.hasNext())
+            for(int i = 0; i < count; i++)
             {
-                ObjdectRls newrls = newit.next();
-                QRectF rect = rls.rect.intersected(newrls.rect);
-                float rectsize = rect.width() * rect.height();
-                float objsize = newrls.rect.width() * newrls.rect.height();
-                if(rectsize / objsize > 0.6)
+                double coo =  0;
+                int iddx = 0;
+                for(int j = 0; j < list.count(); j++)
                 {
-                    rls.rect = newrls.rect;
-                    rls.leaveframe = 0;
-                    newit.remove();
-                    isupdate = true;
-                    break;
+                    double co = compareHist( objdects[idx][i].Hist, list[j].Hist, CV_COMP_CORREL );
+                    if(co > coo)
+                    {
+                        coo = co;
+                        iddx = j;
+                    }
+                }
+                objdects[idx][i].Hist = list[iddx].Hist;
+                objdects[idx][i].rect = list[iddx].rect;
+                objdects[idx][i].img = list[iddx].img;
+                objdects[idx][i].leaveframe = 0;
+                list.removeAt(iddx);
+            }
+            for(int i = 0; i < list.count(); i++)
+            {
+                list[i].ID = currentObjID[idx];
+                list[i].leaveframe = 0;
+                objdects[idx].append(list[i]);
+                currentObjID[idx]++;
+            }
+        }
+        else
+        {
+            int corr[count];
+            for(int i = 0; i < count; i++)
+            {
+                corr[i] = -1;
+            }
+            for(int i = 0; i < comcount; i++)
+            {
+                double coo =  0;
+                int iddx = 0;
+                for(int j = 0; j < count; j++)
+                {
+                    double co = compareHist(list[i].Hist, objdects[idx][j].Hist, CV_COMP_CORREL );
+                    if(co > coo)
+                    {
+                        coo = co;
+                        iddx = j;
+                    }
+                }
+                corr[iddx] = i;
+            }
+
+            for(int i = 0; i < count; i++)
+            {
+                if(corr[i] == -1)
+                {
+                    objdects[idx][i].leaveframe++;
+                }
+                else
+                {
+                    objdects[idx][i].Hist = list[corr[i]].Hist;
+                    objdects[idx][i].rect = list[corr[i]].rect;
+                    objdects[idx][i].img = list[corr[i]].img;
+                    objdects[idx][i].leaveframe = 0;
                 }
             }
-            if(isupdate == false)
+            QMutableListIterator<ObjdectRls> it(objdects[idx]);
+            while (it.hasNext())
             {
-                rls.leaveframe++;
+                ObjdectRls rls = it.next();
                 if(rls.leaveframe > 2)
                 {
                     it.remove();
                 }
             }
         }
-        newit.toFront();
-        while(newit.hasNext())
-        {
-            it.insert(newit.next());
-        }
     }
-
     mutex.unlock();
 }
 void Widget::recvReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2)

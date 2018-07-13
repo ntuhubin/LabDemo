@@ -65,13 +65,13 @@ FORMS += \
 
 
 INCLUDEPATH +=  /usr/local/include/opencv \
-/usr/local/include/opencv2 \
-/home/lib/tensorflow \
-/home/lib/tensorflow/third_party \
-/home/lib/tensorflow/bazel-genfiles \
-/usr/lib/python2.7/site-packages \
-/usr/lib/python2.7/site-packages/tensorflow/include \
-/usr/lib/python2.7/site-packages/tensorflow/include/external/nsync/public
+/home/proj/library/opencv/include \
+/home/proj/library/tensorflow \
+/home/proj/library/tensorflow/third_party \
+/home/proj/library/tensorflow/bazel-genfiles \
+/usr/local/lib/python3.5/dist-packages \
+/usr/local/lib/python3.5/dist-packages/tensorflow/include \
+/usr/local/lib/python3.5/dist-packages/tensorflow/include/external/nsync/public/
 
 INCLUDEPATH +=  /usr/include/python2.7 \
 -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
@@ -81,15 +81,15 @@ INCLUDEPATH +=  /usr/include/python2.7 \
 LIBS +=-L/usr/lib64/python2.7/config -L/usr/lib64 -lpython2.7 \
 -lpthread -ldl -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 
-LIBS += /home/lib/opencv/build/lib/libopencv_core.so \
-/home/lib/opencv/build/lib/libopencv_imgproc.so \
-/home/lib/opencv/build/lib/libopencv_imgcodecs.so
+LIBS += /home/proj/library/opencv/build/lib/libopencv_core.so \
+/home/proj/library/opencv/build/lib/libopencv_imgproc.so \
+/home/proj/library/opencv/build/lib/libopencv_imgcodecs.so
 
 
-LIBS += -L/home/proj/matou/tf_cpp_detector/lib -ltensorflow_cc -ltensorflow_framework
+LIBS += -L/home/proj/lab/human_cpp_detector/lib -ltensorflow_cc -ltensorflow_framework
 
 
-LIBS += -L/home/lib/hclib/ -Wl,-rpath=./:/home/lib/hclib/HCNetSDKCom:/home/lib/hclib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender
+LIBS += -L/lib/hclib/ -Wl,-rpath=./:/lib/hclib/HCNetSDKCom:/lib/hclib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender
 
 INCLUDEPATH += /home/proj/lab/usrcontrol/LAB
 LIBS += /home/proj/lab/usrcontrol/Release/liblabplugin.so
