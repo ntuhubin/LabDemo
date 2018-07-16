@@ -43,6 +43,7 @@ private slots:
     void frmMenu();
     void sysSetup();
     void sysStart();
+    void sysRegister();
 };
 
 #endif // WIDGET_H

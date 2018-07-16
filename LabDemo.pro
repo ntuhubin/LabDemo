@@ -73,12 +73,14 @@ INCLUDEPATH +=  /usr/local/include/opencv \
 /usr/local/lib/python3.5/dist-packages/tensorflow/include \
 /usr/local/lib/python3.5/dist-packages/tensorflow/include/external/nsync/public/
 
-INCLUDEPATH +=  /usr/include/python2.7 \
+#INCLUDEPATH +=  /usr/include/python2.7 \
+INCLUDEPATH +=  /usr/include/python3.5 \
 -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
 
 
 
-LIBS +=-L/usr/lib64/python2.7/config -L/usr/lib64 -lpython2.7 \
+#LIBS +=-L/usr/lib64/python3.5/config -L/usr/lib64 -lpython3.5 \
+LIBS += -L/usr/local/lib -lpython3.5 \
 -lpthread -ldl -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 
 LIBS += /home/proj/library/opencv/build/lib/libopencv_core.so \

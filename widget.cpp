@@ -57,7 +57,7 @@ Widget::~Widget()
     }
     delete ui;
 }
-void Widget::recvImg(QImage img, int idx)
+void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1开始
 {
     if(idx != 4)
     {
@@ -108,8 +108,15 @@ void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
     if(idx < 0 || idx > 3)
         return;
     mutex.lock();
-    int count = objdects[idx].count();
-    int comcount = list.count();
+    int count = list.count();
+    objdects[idx].clear();
+    for(int i = 0; i < count; i++)
+    {
+        objdects[idx].append(list[i]);
+    }
+    mutex.unlock();
+    //int count = objdects[idx].count();
+    /*int comcount = list.count();
     if(count == 0)
     {
         for(int i = 0; i < list.count(); i++)
@@ -198,7 +205,7 @@ void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
             }
         }
     }
-    mutex.unlock();
+    mutex.unlock();*/
 }
 void Widget::recvReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2)
 {
@@ -212,6 +219,7 @@ void Widget::frmMenu()
     menu->addSeparator();
     menu->addAction("setting", this, SLOT(sysSetup()));
     menu->addAction("start", this, SLOT(sysStart()));
+    menu->addAction("register", this, SLOT(sysRegister()));
     menu->exec(QCursor::pos());
     delete menu;
 }
@@ -268,7 +276,11 @@ void Widget::sysStart()
     }
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();
-    /*face_thd = new CFaceClsThread();
-    connect(play_thd[1], &PlayLocalM4::message, face_thd, &CFaceClsThread::recvImg);
-    face_thd->start();*/
+    //face_thd = new CFaceClsThread();
+    //connect(play_thd[1], &PlayLocalM4::message, face_thd, &CFaceClsThread::recvImg);
+    //face_thd->start();
+}
+void Widget::sysRegister()
+{
+
 }

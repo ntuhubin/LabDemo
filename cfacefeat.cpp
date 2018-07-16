@@ -69,7 +69,7 @@ int CFaceFeat::GetFeature(char *imgpath)
     PyObject *pArgs = NULL;
     PyObject *pReturn = NULL;
     pArgs = PyTuple_New(2);
-    PyTuple_SetItem(pArgs, 0, PyString_FromString(imgpath));
+    PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(imgpath));
     PyTuple_SetItem(pArgs, 1, pConfigReturn);
 
     pReturn = PyObject_CallObject(pFunc,pArgs);
@@ -135,7 +135,7 @@ int CFaceFeat::train_classifier(char *feature_dir)
 
     /* build args */
     pArgs = PyTuple_New(1);
-    PyTuple_SetItem(pArgs, 0, PyString_FromString(feature_dir));
+    PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(feature_dir));
 
     /* print classifier path */
     PyObject_CallObject(pConfig, pArgs);

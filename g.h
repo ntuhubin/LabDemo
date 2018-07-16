@@ -8,9 +8,9 @@
 typedef struct
 {
     int CAMID;
-    int ObjID;   //gong hao
+    int ObjID;   //obj type
     int withHat;   //如果是人，是否戴帽 0 不戴 1戴
-    int ID;     //the same obj has a same ID from 1
+    int ID;     //the same obj has a same ID from 1, trackid
     QString name;  //person's name or workid
     int leaveframe;
     QRectF rect;
@@ -49,6 +49,7 @@ typedef struct
 }ClsInfo, *pClsInfo;
 typedef struct
 {
+    int tarckid;    //对应行人检测中的行人ID
     QImage dectImg;
     //QList<float> features;  //128*sizeof(imgs)
     QString lable;   // 实际是注册人姓名

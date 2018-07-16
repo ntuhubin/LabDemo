@@ -25,7 +25,7 @@ public:
     void setStop();
     bool isGet;
     QImage RecvImg;
-    int devid;
+    int devid;   //对应行人检测中的行人ID
     volatile bool stopflag;
     QMutex mutex;
     QList<SaveRegPerson> capList;

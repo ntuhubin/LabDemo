@@ -73,8 +73,8 @@ void CFaceClassification::classfier(char *imgpath)
     /* build args */
     PyObject *pArgs;
     pArgs = PyTuple_New(3);
-    PyTuple_SetItem(pArgs, 0, PyString_FromString(classifier_path));
-    PyTuple_SetItem(pArgs, 1, PyString_FromString(imgpath));
+    PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(classifier_path));
+    PyTuple_SetItem(pArgs, 1, PyUnicode_FromString(imgpath));
     PyTuple_SetItem(pArgs, 2, pConfigReturn);
 
     PyObject *pReturn = PyObject_CallObject(pFunc, pArgs);
@@ -92,7 +92,7 @@ void CFaceClassification::classfier(char *imgpath)
             if(j == 0)
             {
                 PyObject *item1 = PyList_GetItem(ListItem, 0);
-                info.label = PyString_AsString(item1);
+                info.label = PyBytes_AS_STRING(item1);
 
             }
             else if(j == 1)

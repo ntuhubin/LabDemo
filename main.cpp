@@ -11,20 +11,16 @@ void PythonTest()
         return;
     }
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append('./')");
-    PyObject *pModule = PyImport_ImportModule("model");
-    if(!pModule)
-    {
-        qDebug()<<"2222222222222";
-        return;
-    }
-    PyObject * pFuncHello = PyObject_GetAttrString(pModule, "config");
-    if(!pFuncHello)
-    {
-        qDebug()<<"33333333333";
-        return;
-    }
-    PyObject_CallObject(pFuncHello, NULL);
+    PyRun_SimpleString("sys.path.append('/home/proj/qcloud/')");
+    PyObject *pModule = PyImport_ImportModule("sendsms");
+    PyObject *pFunc = PyObject_GetAttrString(pModule, "sendSMS");
+    PyObject *pArgs;
+    pArgs = PyTuple_New(3);
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", 1400111693));
+    PyTuple_SetItem(pArgs, 1, PyUnicode_FromString("05a22769fd49fd9860b6cf5c196054bc"));
+    PyTuple_SetItem(pArgs, 2, Py_BuildValue("i", 0));
+    PyEval_CallObject(pFunc, pArgs);
+
     Py_Finalize();
 }
 int main(int argc, char *argv[])
@@ -35,6 +31,7 @@ int main(int argc, char *argv[])
     w.showMaximized();
 
     publicFun::InitPython();
+    //publicFun::SendSMS();
 
     return a.exec();
 }

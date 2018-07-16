@@ -17,6 +17,7 @@ void CFaceClsThread::SetParam(QImage img,  int devID)
     mutex.lock();
     RecvImg = img;
     devid = devID;
+    isGet = true;
     mutex.unlock();
 
 }
@@ -42,6 +43,11 @@ void CFaceClsThread::run()
     face->Init();
     while(true)
     {
+        if(isGet == false)
+        {
+            msleep(200);
+            continue;
+        }
         if(first != 0)
         {
             face->GetGIL();
@@ -96,12 +102,13 @@ void CFaceClsThread::run()
             //cr.features = face->ClsList[i].features;
             cr.rect = QRectF(pos[0],pos[1], pos[2]-pos[0],pos[3]-pos[1]);
             cr.capDate = QDateTime::currentDateTime();
+            cr.tarckid = devid;
             list.append(cr);
         }
 
         emit sendcls(list);
-        isGet = true;
-        msleep(100);
+        isGet = false;
+        msleep(200);
     }
 }
 /*int CFaceClsThread::UpdateCapList(ClsInfo clsinfo,  QImage dimg)
