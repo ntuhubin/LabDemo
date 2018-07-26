@@ -6,6 +6,7 @@
 #include <QMetaType>
 #include <QMutex>
 #include <QDebug>
+#include <QQueue>
 #include "cfaceclassification.h"
 #include "g.h"
 
@@ -14,8 +15,8 @@ class CFaceClsThread:public QThread
     Q_OBJECT
 signals:
     void sendcls(QList<ClsResult> dectresult);
-public slots:
-    void recvImg(QImage img, int idx);   //recieve from camera 1
+//public slots:
+    //void recvImg(QImage img, int idx);   //recieve from camera 1
 public:
     CFaceClsThread();
     CFaceClassification *face;
@@ -24,8 +25,11 @@ public:
     void setStart();
     void setStop();
     bool isGet;
-    QImage RecvImg;
-    int devid;   //对应行人检测中的行人ID
+    //QImage RecvImg;
+    //int devid;   //对应行人检测中的行人ID
+    QQueue<QImage> ImgQue;
+    QQueue<int> humanidQue;
+
     volatile bool stopflag;
     QMutex mutex;
     QList<SaveRegPerson> capList;

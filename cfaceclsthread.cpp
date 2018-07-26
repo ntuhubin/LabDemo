@@ -15,19 +15,23 @@ CFaceClsThread::~CFaceClsThread()
 void CFaceClsThread::SetParam(QImage img,  int devID)
 {
     mutex.lock();
-    RecvImg = img;
-    devid = devID;
+    //RecvImg = img;
+    //devid = devID;
+    ImgQue.append(img);
+    humanidQue.append(devID);
     isGet = true;
     mutex.unlock();
 
 }
-void CFaceClsThread::recvImg(QImage img, int idx)
+/*void CFaceClsThread::recvImg(QImage img, int idx)
 {
     mutex.lock();
-    RecvImg = img.copy();
-    devid = idx;
+    //RecvImg = img.copy();
+    //devid = idx;
+    ImgQue.append(img);
+    humanid
     mutex.unlock();
-}
+}*/
 void CFaceClsThread::setStart()
 {
     stopflag = false;
@@ -43,7 +47,12 @@ void CFaceClsThread::run()
     face->Init();
     while(true)
     {
-        if(isGet == false)
+        /*if(isGet == false)
+        {
+            msleep(200);
+            continue;
+        }*/
+        if (ImgQue.count() == 0)
         {
             msleep(200);
             continue;
@@ -55,7 +64,8 @@ void CFaceClsThread::run()
         first++;
         //qDebug() << "HERE1";
         mutex.lock();
-        QImage img = RecvImg.copy();
+        QImage img = ImgQue.dequeue();
+        int humanid = humanidQue.dequeue();
         mutex.unlock();
         if(img.isNull() == true)
         {
@@ -69,7 +79,7 @@ void CFaceClsThread::run()
             break;
         }
         QList<ClsResult> list;
-        QString filename = "/tmp/" + QString::number(devid,10)+".jpg";
+        QString filename = "/tmp/" + QString::number(humanid,10)+".jpg";
         img.save(filename);
         mutex.unlock();
         //msleep(100);
@@ -102,7 +112,7 @@ void CFaceClsThread::run()
             //cr.features = face->ClsList[i].features;
             cr.rect = QRectF(pos[0],pos[1], pos[2]-pos[0],pos[3]-pos[1]);
             cr.capDate = QDateTime::currentDateTime();
-            cr.tarckid = devid;
+            cr.tarckid = humanid;
             list.append(cr);
         }
 

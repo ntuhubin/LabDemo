@@ -66,6 +66,7 @@ int CFaceFeat::Init()
 }
 int CFaceFeat::GetFeature(char *imgpath)
 {
+    qDebug(imgpath);
     PyObject *pArgs = NULL;
     PyObject *pReturn = NULL;
     pArgs = PyTuple_New(2);
@@ -76,46 +77,54 @@ int CFaceFeat::GetFeature(char *imgpath)
 
     if(pReturn == 0x00)
     {
-        PyRun_SimpleString("import sys");
-        PyRun_SimpleString("sys.path.append('./')");
         qDebug(" no face detectd ");
         return 1;
     }
 
     if(PyList_Check(pReturn))
     { //check list
-      int SizeOfList = PyList_Size(pReturn);
-      if(SizeOfList < 1)
-      {
-          return 3;
-      }
-      //for(int i = 0; i < SizeOfList; i++)
-      //{
-          PyObject *ListItem = PyList_GetItem(pReturn, 0);
-          int NumOfItems = PyList_Size(ListItem);
-          //cout<<"Dimension: "<< NumOfItems<< " Value: ";
-          for(int k = 0; k < NumOfItems; k++)
+       int SizeOfList = PyList_Size(pReturn);
+       if(SizeOfList < 1)
+       {
+           return 3;
+       }
+       for(int j = 0; j < 2; j++)
+       {
+          PyObject *ListItem = PyList_GetItem(pReturn, j);
+          if(j == 0)
           {
-              PyObject *item = PyList_GetItem(ListItem, k);//get all feature element
-              if (NumOfItems == 128)
-              {
-                  feat[k] = PyFloat_AsDouble(item);
-                  //cout << PyFloat_AsDouble(item) <<" ";
+             int NumOfItems = PyList_Size(ListItem);
+             if(NumOfItems != 128)
+             {
+                 return 4;
+             }
+             for(int m = 0; m < 128; m++)
+             {
+                 PyObject *item = PyList_GetItem(ListItem, m);
+                 //info.features.append(PyFloat_AsDouble(item3));
+                 feat[m] = PyFloat_AsDouble(item);
               }
-              //Py_DECREF(item);
           }
-          //Py_DECREF(ListItem);
-        //}
-     }
-    else
-    {
-      //cout<<"Not a List"<<endl;
-        return 2;
-    }
-    /*if(pArgs)
-        Py_DECREF(pArgs);
-    if(pReturn)
-        Py_DECREF(pReturn);*/
+          else if(j == 1)
+          {
+              for(int k = 0; k < 4; k++)
+              {
+                  PyObject *item = PyList_GetItem(ListItem, k);
+                  //info.pos[k] = PyFloat_AsDouble(item4);
+                  pos[k] = PyFloat_AsDouble(item);
+               }
+           }
+         }
+       }
+
+       else
+       {
+           return 2;
+       }
+
+    if(pos[0] < 0 || pos[1] < 0 || pos[2] < 0 || pos[3] <0)
+        return 4;
+
     return 0;
 }
 int CFaceFeat::train_classifier(char *feature_dir)
@@ -134,8 +143,9 @@ int CFaceFeat::train_classifier(char *feature_dir)
     pConfig = PyObject_GetAttrString(pModel, "train");
 
     /* build args */
-    pArgs = PyTuple_New(1);
+    pArgs = PyTuple_New(2);
     PyTuple_SetItem(pArgs, 0, PyUnicode_FromString(feature_dir));
+    PyTuple_SetItem(pArgs, 1, PyUnicode_FromString("model"));
 
     /* print classifier path */
     PyObject_CallObject(pConfig, pArgs);

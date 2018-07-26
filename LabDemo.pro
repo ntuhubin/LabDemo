@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = LabDemo
 TEMPLATE = app
 CONFIG += c++11
+
 #CONFIG += link_pkgconfig
 #PKGCONFIG += x11
 
@@ -37,7 +38,8 @@ SOURCES += \
     cfaceclassification.cpp \
     cfaceclsthread.cpp \
     cfacefeat.cpp \
-    cpersonreidthd.cpp
+    cpersonreidthd.cpp \
+    registerdlg.cpp
 
 #SOURCES += /home/dlib-19.13/dlib/all/source.cpp
 
@@ -58,34 +60,37 @@ HEADERS += \
     cfaceclassification.h \
     cfaceclsthread.h \
     cfacefeat.h \
-    cpersonreidthd.h
+    cpersonreidthd.h \
+    registerdlg.h
 
 FORMS += \
-        widget.ui
+        widget.ui \
+    registerdlg.ui
 
 
-INCLUDEPATH +=  /usr/local/include/opencv \
-/home/proj/library/opencv/include \
+INCLUDEPATH += /home/proj/library/opencv/include \
 /home/proj/library/tensorflow \
 /home/proj/library/tensorflow/third_party \
 /home/proj/library/tensorflow/bazel-genfiles \
 /usr/local/lib/python3.5/dist-packages \
 /usr/local/lib/python3.5/dist-packages/tensorflow/include \
-/usr/local/lib/python3.5/dist-packages/tensorflow/include/external/nsync/public/
+/usr/local/lib/python3.5/dist-packages/tensorflow/include/external/nsync/public
 
-#INCLUDEPATH +=  /usr/include/python2.7 \
-INCLUDEPATH +=  /usr/include/python3.5 \
--fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2 -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes
+INCLUDEPATH += /usr/include/python3.5m \
+/usr/include/python3.5m \
+ -Wno-unused-result -Wsign-compare -g -fstack-protector-strong -Wformat -Werror=format-security  -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
 
+LIBS += -L/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu \
+-L/usr/lib -lpython3.5m \
+-lpthread -ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 
-
-#LIBS +=-L/usr/lib64/python3.5/config -L/usr/lib64 -lpython3.5 \
-LIBS += -L/usr/local/lib -lpython3.5 \
--lpthread -ldl -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
+#LIBS += /usr/local/lib/python3.5/dist-packages/dlib.cpython-35m-x86_64-linux-gnu.so
+#LIBS += /usr/local/lib/libdlib.a
 
 LIBS += /home/proj/library/opencv/build/lib/libopencv_core.so \
 /home/proj/library/opencv/build/lib/libopencv_imgproc.so \
-/home/proj/library/opencv/build/lib/libopencv_imgcodecs.so
+/home/proj/library/opencv/build/lib/libopencv_imgcodecs.so \
+#/usr/lib/x86_64-linux-gnu/libjpeg.a
 
 
 LIBS += -L/home/proj/lab/human_cpp_detector/lib -ltensorflow_cc -ltensorflow_framework

@@ -13,6 +13,7 @@
 #include "cfaceclsthread.h"
 #include "cpersonreidthd.h"
 #include "lab.h"
+#include "registerdlg.h"
 
 namespace Ui {
 class Widget;

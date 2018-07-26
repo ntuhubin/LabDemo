@@ -10,7 +10,8 @@ CHuamDectThd::CHuamDectThd(int idx):QThread()
         currentObjID[i] = 1;
     }
     face_thd = new CFaceClsThread();
-    //face_thd->start();
+    connect(face_thd, &CFaceClsThread::sendcls,this,&CHuamDectThd::recvFace);
+    face_thd->start();
 
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
 }
@@ -46,7 +47,7 @@ int CHuamDectThd::DetectHuman(Mat img, int *rect, QImage qimg)
     DetectedObjectGroup detected_object_group;
     const float score_threshold = 0.6f;
     const int max_num_detections = 4;
-    string frozen_graph_path = "helmet_model.pb.quantize";
+    string frozen_graph_path = "helmet_model_v2.pb.quantize";
     const DetectorType detector_type = HUMAN;
     if (!Detection(img, &detected_object_group, frozen_graph_path,
                        detector_type, score_threshold, max_num_detections)) {
@@ -95,6 +96,7 @@ int CHuamDectThd::DetectHuman(Mat img, int *rect, QImage qimg)
             int channels[] = { 0, 1 };
             calcHist( &ROIImg, 1, channels, Mat(), objrls.Hist, 2, histSize, ranges, true, false );
             normalize( objrls.Hist, objrls.Hist, 0, 1, NORM_MINMAX);
+            objrls.ID = 0;
             list[dectindex].append(objrls);
         }
         else if(objrls.ObjID == 3)  //an quan mao
@@ -228,9 +230,10 @@ void CHuamDectThd::MaintainObj()
             }
         }
     }
+
     for(int i = 0; i < maintainhuman[1].count(); i++)
     {
-        if(maintainhuman[1][i].name == "")
+        if(maintainhuman[1][i].name == "")  //process one img per time
         {
             face_thd->SetParam(maintainhuman[1][i].img, maintainhuman[1][i].ID);
         }

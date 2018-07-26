@@ -55,6 +55,7 @@ Widget::~Widget()
     {
         play_thd[i]->stopRealPlay();
     }
+    human_thd->StopRun();
     delete ui;
 }
 void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1开始
@@ -88,6 +89,7 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                     painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() - 25,str);
                 }
                 painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 25, QString::number(rls[i].ID, 10));
+                painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
             }
             //painter.drawRects(rects);
         }
@@ -282,5 +284,6 @@ void Widget::sysStart()
 }
 void Widget::sysRegister()
 {
-
+    RegisterDlg *regdlg = new RegisterDlg();
+    regdlg->show();
 }
