@@ -81,6 +81,7 @@ void Facecls()
     face->Init();
     face->classfier("/tmp/5.jpg");
 }
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

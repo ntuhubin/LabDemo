@@ -6,6 +6,7 @@ CPersonReIDThd::CPersonReIDThd():QThread()
     stop_flag = false;
     newcome = false;
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
+    //qRegisterMetaType<ObjdectRls> ("ObjdectRls");
 }
 void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3])
 {
@@ -22,7 +23,7 @@ void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3])
     mutex.unlock();
 
 }
-void CPersonReIDThd::ComparePerson(QList<ObjdectRls> list, QList<ObjdectRls> cplist)
+void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid)
 {
     QList<ObjdectRls> tmp;
     int count = cplist.count();
@@ -45,13 +46,42 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> list, QList<ObjdectRls> cpl
                 index = j;
             }
         }
-        if(score > 0)  //match
+        if(camid == 3)
+        {
+            qDebug() << score;
+        }
+        if(score > 0.8)  //match
         {
             list[i].name = tmp[index].name;
             tmp.removeAt(index);
         }
         score = -100;
         index = -1;
+    }
+}
+ObjdectRls CPersonReIDThd::ComparePerson(QList<ObjdectRls> list, ObjdectRls rls)
+{
+    float score = -1000;
+    int index = -1;
+    for(int i = 0; i < list.count(); i++)
+    {
+        Mat img1 = publicFun::QImageToMat(list[i].img);
+        Mat img2 = publicFun::QImageToMat(rls.img);
+        float ss = GetSocre(img1, img2);
+        if(ss > score)
+        {
+            score = ss;
+            index = i;
+        }
+    }
+    if(score > 0)  //match
+    {
+        list[index].name = rls.name;
+        return list[index];
+    }
+    else
+    {
+        return list[0];   //bug
     }
 }
 void CPersonReIDThd::InitTF()
@@ -61,7 +91,7 @@ void CPersonReIDThd::InitTF()
     input_height = 160;
     input_layer = "images:0";
     output_layer = "softmax:0";
-    graph = "./person-reid.pb";
+    graph = "person-reid.pb";
     root_dir = "";
     tensorflow::GraphDef graph_def;
     if (!ReadBinaryProto(tensorflow::Env::Default(), graph, &graph_def).ok()) {
@@ -144,8 +174,10 @@ void CPersonReIDThd::run()
         }
         newcome = false;
         mutex.unlock();
-        ComparePerson(rlist[0], rlist[1]);
-        ComparePerson(rlist[2], rlist[1]);
+        //ObjdectRls rls1 = ComparePerson(rlist[0], rlist[1][0]);
+        //ObjdectRls rls2 = ComparePerson(rlist[2], rlist[1][0]);
+        ComparePerson(rlist[0], rlist[1], 1);
+        ComparePerson(rlist[2], rlist[1], 3);
         emit SendReid(rlist[0], rlist[2]);
 
         msleep(100);

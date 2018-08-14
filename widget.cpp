@@ -41,7 +41,8 @@ Widget::Widget(QWidget *parent) :
     }
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();*/
-
+    m1pts.setPoints(4, 1374,427, 1570,471,1329,630,1157,555);
+    m2pts.setPoints(4, 1139,628, 1273,690,1032,882,869,810);
 }
 
 Widget::~Widget()
@@ -64,13 +65,13 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
     {
         mutex.lock();
         int count = objdects[idx - 1].count();
-        QList<ObjdectRls> rls;
-        for(int i = 0; i < count; i++)
+        QList<ObjdectRls> rls = objdects[idx - 1];
+        /*for(int i = 0; i < count; i++)
         {
             rls.append(objdects[idx - 1].at(i));
-        }
-        mutex.unlock();
-        if(count != 0)
+        }*/
+
+        if(count != 0 || idx == 1)
         {
             //QVector<QRectF> rects;
 
@@ -92,9 +93,18 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                 painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
             }
             //painter.drawRects(rects);
-        }
-    }
+            if(idx == 1)
+            {
+                painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
+                painter.drawConvexPolygon(m1pts);
+                painter.drawConvexPolygon(m2pts);
+            }
 
+        }
+        //if(idx == 1)
+            //img.save("/tmp/0.jpg");
+    }
+    mutex.unlock();
 
 
     QLabel *cam[4] = {ui->label_CameraA, ui->label_CameraB, ui->label_CameraC, ui->label_CameraD};
@@ -263,13 +273,13 @@ void Widget::sysStart()
     ui->pushButtonmMenu->setEnabled(false);
     ui->pushButtonmMenu->setVisible(false);
     for(int i = 0; i < 4; i++)
-     {
+    {
          play_thd[i] = new PlayLocalM4();
          connect(play_thd[i], &PlayLocalM4::message, this, &Widget::recvImg);
          play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
          play_thd[i]->start();
-     }
-     human_thd = new CHuamDectThd(0);
+    }
+    human_thd = new CHuamDectThd(0);
     for(int i = 0; i < 3; i++)
     {
         //human_thd[i] = new CHuamDectThd(i);

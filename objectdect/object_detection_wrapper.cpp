@@ -9,22 +9,22 @@ bool Detection(cv::Mat &input_img, DetectedObjectGroup* detected_object_group,
                const float score_threshold,
                const int max_num_detections) {
   if (detector_type != HUMAN) {
-    cout << "Current only support object detection." << endl;
+    //cout << "Current only support object detection." << endl;
     return false;
   } else {
     if (init_object == false) {
-      cout << "object model is not loaded yet." << endl
-           << "Loading model..." << endl;
+      //cout << "object model is not loaded yet." << endl
+           //<< "Loading model..." << endl;
       object_detector.LoadGraph(frozen_graph_path);
-      cout << "Loading model finished." << endl;
+      //cout << "Loading model finished." << endl;
       init_object = true;
     }
     if (!object_detector.Detect(input_img, detected_object_group,
                               score_threshold, max_num_detections)) {
-      cout << "Detection failed." << endl;
+      //cout << "Detection failed." << endl;
       return false;
     }
-    cout << "Detection finished successfully." << endl;
+    //cout << "Detection finished successfully." << endl;
     return true;
   }
 }

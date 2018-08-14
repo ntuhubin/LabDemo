@@ -6,3 +6,5 @@ git push labdemo master
 人脸摄像头检测到行人后，尝试进行人脸识别
 2018-07-26
 人脸注册，人脸识别
+2018--8-14
+fix some bug

@@ -57,11 +57,7 @@ void CFaceClsThread::run()
             msleep(200);
             continue;
         }
-        if(first != 0)
-        {
-            face->GetGIL();
-        }
-        first++;
+
         //qDebug() << "HERE1";
         mutex.lock();
         QImage img = ImgQue.dequeue();
@@ -74,16 +70,20 @@ void CFaceClsThread::run()
         }
         if(stopflag == true)
         {
-            face->ReleaseGIL();
-            //face->deInit();
             break;
+        }
+
+        if(first != 0)
+        {
+            face->GetGIL();
+        }
+        else
+        {
+            first = 1;
         }
         QList<ClsResult> list;
         QString filename = "/tmp/" + QString::number(humanid,10)+".jpg";
         img.save(filename);
-        mutex.unlock();
-        //msleep(100);
-        //qDebug() << "HERE2";
 
         face->classfier(filename.toLatin1().data());
         //face->classfier("./register/hu/1.jpg");
@@ -117,7 +117,7 @@ void CFaceClsThread::run()
         }
 
         emit sendcls(list);
-        isGet = false;
+        //isGet = false;
         msleep(200);
     }
 }

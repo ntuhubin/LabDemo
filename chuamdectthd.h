@@ -15,6 +15,7 @@
 #include "publicfun.h"
 #include "g.h"
 #include "cfaceclsthread.h"
+#include "cpersonreidthd.h"
 
 using namespace cv;
 using namespace std;
@@ -27,15 +28,18 @@ signals:
 public slots:
     void recvImg(QImage img, int idx);   //recieve from camera
     void recvFace(QList<ClsResult> dectresult);
+    void RecvReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2);
+    void recvreid(ObjdectRls rls1, ObjdectRls rls2);
 public:
     CHuamDectThd(int idx);
-    int DetectHuman(Mat img, int *rect, QImage qimg);
+    int DetectHuman(Mat img,  QImage qimg);
     void StopRun();
     void CheckHat();
     int isCross(ObjdectRls rls1, ObjdectRls rls2);
 
     QList<ObjdectRls> maintainhuman[3];  //human in three camera,关联之后的检测结果
     int currentObjID[3];   //三个目标检测  当前可用的ID
+    QList<ObjdectRls> facePerson;   //被抓拍到人脸的所有数据，(保留一小时?)
 private:
     QImage curImg[3];  //
     QMutex mutex;
@@ -45,9 +49,13 @@ private:
     QList<ObjdectRls> hatlist[3];
     int dectindex;
     CFaceClsThread *face_thd;
+    CPersonReIDThd *personReid;
 private:
     void run();
     void MaintainObj();
+    void PrepareReid(ObjdectRls Objrls);
+    void MultiPrepareReid();
+    void ProcessOPArea();
 };
 
 #endif // CHUAMDECTTHD_H

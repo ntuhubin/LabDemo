@@ -112,7 +112,7 @@ public:
             PyEval_SaveThread();
         }
     }
-    static void SendSMS()
+    static void SendSMS(char* workerid, char* camid)
     {
         PyGILState_STATE gstate;
         gstate = PyGILState_Ensure();
@@ -121,10 +121,14 @@ public:
         PyObject *pModule = PyImport_ImportModule("sendsms");
         PyObject *pFunc = PyObject_GetAttrString(pModule, "sendSMS");
         PyObject *pArgs;
-        pArgs = PyTuple_New(3);
+        pArgs = PyTuple_New(5);
+
         PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", 1400111693));
         PyTuple_SetItem(pArgs, 1, PyUnicode_FromString("05a22769fd49fd9860b6cf5c196054bc"));
         PyTuple_SetItem(pArgs, 2, Py_BuildValue("i", 0));
+        PyTuple_SetItem(pArgs, 3, PyUnicode_FromString(workerid));
+        PyTuple_SetItem(pArgs, 4, PyUnicode_FromString(camid));
+
         PyObject_CallObject(pFunc, pArgs);
         PyGILState_Release(gstate);    //释放当前线程的GIL
     }

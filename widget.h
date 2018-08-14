@@ -40,6 +40,8 @@ private:
     int currentObjID[3];   //三个目标检测  当前可用的ID
     QMutex mutex;
     CFaceClsThread *face_thd;
+    QPolygon m1pts;
+    QPolygon m2pts;
 private slots:
     void frmMenu();
     void sysSetup();

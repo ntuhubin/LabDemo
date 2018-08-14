@@ -128,11 +128,11 @@ Status ObjectDetector::StoreTopDetections(
   auto locations_flat = locations.flat<float>();
 
   const Tensor& object_ids = outputs[2];
-  LOG(INFO) << object_ids.DebugString();
+  //LOG(INFO) << object_ids.DebugString();
   auto object_ids_flat = object_ids.flat<float>();
 
-  LOG(INFO) << "===== Top " << max_num_detections << " Detections ======";
-  LOG(INFO) << "===Detection score threshold :" << score_threshold << "===";
+  //LOG(INFO) << "===== Top " << max_num_detections << " Detections ======";
+  //LOG(INFO) << "===Detection score threshold :" << score_threshold << "===";
   detected_object_group->num_of_object = 0;
   detected_object_group->detected_objects.clear();
   for (int pos = 0; pos < max_num_detections; ++pos) {
@@ -146,13 +146,13 @@ Status ObjectDetector::StoreTopDetections(
     float top = location[0] * image_height;
     float right = location[3] * image_width;
     float bottom = location[2] * image_height;
-    LOG(INFO) << "Detection " << pos << ": "
+    /*LOG(INFO) << "Detection " << pos << ": "
               << "Left:" << left << " "
               << "Top:" << top << " "
               << "Right:" << right << " "
               << "Bottom:" << bottom << " "
               << "Object Id: " << object_ids_flat(label_index)  << " "
-              << "(" << label_index << ") score: " << score;
+              << "(" << label_index << ") score: " << score;*/
     DetectedObject detect_object;
     ColorValues color_values;
     color_values.red = 0;

@@ -78,6 +78,10 @@ void CFaceClassification::classfier(char *imgpath)
     PyTuple_SetItem(pArgs, 2, pConfigReturn);
 
     PyObject *pReturn = PyObject_CallObject(pFunc, pArgs);
+    if(! pReturn)
+    {
+        return;
+    }
     int SizeOfList = PyList_Size(pReturn);
     int personnum = SizeOfList / 4;
     if(personnum < 1)
@@ -116,11 +120,10 @@ void CFaceClassification::classfier(char *imgpath)
                     PyObject *item4 = PyList_GetItem(ListItem, k);
                     info.pos[k] = PyFloat_AsDouble(item4);
                 }
-
             }
 
         }
         ClsList.append(info);
     }
-    Py_DECREF(ListItem);
+    //Py_DECREF(ListItem);
 }

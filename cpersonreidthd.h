@@ -30,6 +30,7 @@ public slots:
     void ReidList(QList<ObjdectRls> rls[3]);
 signals:
     void SendReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2);
+    void sendreid(ObjdectRls rls1, ObjdectRls rls2);
 private:
     int input_width;
     int input_height;
@@ -46,7 +47,8 @@ public:
     CPersonReIDThd();
     void InitTF();
     float GetSocre(Mat img1, Mat img2);
-    void ComparePerson(QList<ObjdectRls> list, QList<ObjdectRls> cplist);
+    void ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid);
+    ObjdectRls ComparePerson(QList<ObjdectRls> list, ObjdectRls rls);
     void StopRun();
 private:
     void run();
