@@ -14,6 +14,7 @@
 #include "cpersonreidthd.h"
 #include "lab.h"
 #include "registerdlg.h"
+#include "querydlg.h"
 
 namespace Ui {
 class Widget;
@@ -37,16 +38,20 @@ private:
     CHuamDectThd *human_thd;
     CPersonReIDThd *reid_thd;
     QList<ObjdectRls> objdects[3];
+    QList<ObjdectRls> showobjs;   //右侧栏显示, max 5
     int currentObjID[3];   //三个目标检测  当前可用的ID
     QMutex mutex;
     CFaceClsThread *face_thd;
     QPolygon m1pts;
     QPolygon m2pts;
+private:
+    void DealShowObjs(ObjdectRls rls);
 private slots:
     void frmMenu();
     void sysSetup();
     void sysStart();
     void sysRegister();
+    void sysQuery();
 };
 
 #endif // WIDGET_H

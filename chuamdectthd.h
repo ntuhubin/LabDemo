@@ -16,6 +16,7 @@
 #include "g.h"
 #include "cfaceclsthread.h"
 #include "cpersonreidthd.h"
+#include "cdbpro.h"
 
 using namespace cv;
 using namespace std;
@@ -32,7 +33,7 @@ public slots:
     void recvreid(ObjdectRls rls1, ObjdectRls rls2);
 public:
     CHuamDectThd(int idx);
-    int DetectHuman(Mat img,  QImage qimg);
+    int DetectHuman(Mat img,  QImage qimg, cv::Rect rc);
     void StopRun();
     void CheckHat();
     int isCross(ObjdectRls rls1, ObjdectRls rls2);
@@ -50,12 +51,18 @@ private:
     int dectindex;
     CFaceClsThread *face_thd;
     CPersonReIDThd *personReid;
+    CDbPro *db;
 private:
     void run();
     void MaintainObj();
+    void MaintainObj_2();
     void PrepareReid(ObjdectRls Objrls);
     void MultiPrepareReid();
+
+    bool isINOpArea(int x, int y);
     void ProcessOPArea();
+
+    void AddEventDB(int camid, QString staffid, int eventid, QImage img);
 };
 
 #endif // CHUAMDECTTHD_H

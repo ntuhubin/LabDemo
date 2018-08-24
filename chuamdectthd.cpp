@@ -17,6 +17,8 @@ CHuamDectThd::CHuamDectThd(int idx):QThread()
     connect(personReid, &CPersonReIDThd::SendReid, this, &CHuamDectThd::RecvReid);
     personReid->start();
 
+    db = new CDbPro();
+
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
 }
 void CHuamDectThd::recvImg(QImage img, int idx)
@@ -40,13 +42,19 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
     ObjdectRls rls;
     for(int i = 0; i < maintainhuman[1].count(); i++)
     {
+        if(maintainhuman[1][i].name != "")
+        {
+            continue;
+        }
         if(dectresult[0].tarckid == maintainhuman[1][i].ID)
         {
+            int eventid = 0;
             maintainhuman[1][i].name = dectresult[0].lable;
             index = i;
             rls = maintainhuman[1][i];
             if(rls.withHat == 0)
             {
+                eventid = 1;
                 char*  chname;
                 QByteArray ba = rls.name.toLatin1(); // must
                 chname = ba.data();
@@ -57,6 +65,8 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
                 chcamid = bcamid.data();
                 //publicFun::SendSMS(chname, chcamid);
             }
+            AddEventDB(2,dectresult[0].lable, eventid, dectresult[0].dectImg);
+
             break;
         }
     }
@@ -224,14 +234,22 @@ void CHuamDectThd::PrepareReid(ObjdectRls Objrls)
         personReid->ReidList(rls);
     }
 }
-int CHuamDectThd::DetectHuman(Mat img, QImage qimg)
+int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
 {
     DetectedObjectGroup detected_object_group;
-    const float score_threshold = 0.6f;
-    const int max_num_detections = 4;
-    string frozen_graph_path = "helmet_model_v3.pb.quantize";
+    const float score_threshold = 0.5f;
+    const int max_num_detections = 10;
+    string frozen_graph_path = "helmet_model_v4.pb.quantize";
     const DetectorType detector_type = HUMAN;
-    if (!Detection(img, &detected_object_group, frozen_graph_path,
+    //Mat imgage = img.clone();
+    Mat roi;
+    roi=img(rc);
+    Mat dectroi = roi.clone();
+    /*img = img(rc);
+    string name = std::to_string(dectindex) + ".jpg";
+    imwrite(name, img);
+    img = imread(name);*/
+    if (!Detection(dectroi, &detected_object_group, frozen_graph_path,
                        detector_type, score_threshold, max_num_detections)) {
         return -1;
     }
@@ -241,10 +259,10 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg)
         DetectedObject detected_object;
         detected_object = detected_object_group.detected_objects[num];
 
-        Point2f top_left(detected_object.left,detected_object.top);
+        /*Point2f top_left(detected_object.left,detected_object.top);
         Point2f bottom_right(detected_object.width+detected_object.left,
                              detected_object.height+detected_object.top);
-        /*rectangle(img, top_left, bottom_right, CV_RGB(255,0,0), 2);*/
+        rectangle(img, top_left, bottom_right, CV_RGB(255,0,0), 2);*/
         /*rect[0] = detected_object.left;
         rect[1] = detected_object.top;
         rect[2] = bottom_right.x;*/
@@ -253,7 +271,8 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg)
         objrls.ObjID = detected_object.object_id;
         objrls.withHat = 0;
 
-        objrls.rect = QRectF(detected_object.left,detected_object.top,detected_object.width,detected_object.height);
+        objrls.rect = QRectF(detected_object.left + rc.x, detected_object.top + rc.y, detected_object.width,detected_object.height);
+        //objrls.rect = QRectF(detected_object.left, detected_object.top, detected_object.width,detected_object.height);
         objrls.img = qimg.copy(objrls.rect.toRect());
         if(objrls.ObjID == 1) //human
         {
@@ -265,17 +284,20 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg)
             cv::Mat ROIImg = publicFun::QImageToMat(objrls.img);
             cvtColor( ROIImg, ROIImg,  COLOR_RGB2HSV);
             // 对hue通道使用30个bin,对saturatoin通道使用32个bin
-            int h_bins = 30; int s_bins = 32;
+            int h_bins = 60; int s_bins = 60;
             int histSize[] = { h_bins, s_bins };
             // hue的取值范围从0到256, saturation取值范围从0到180
-            float h_ranges[] = { 0, 180 };
-            float s_ranges[] = { 0, 256 };
+            float h_ranges[] = { 0, 256 };
+            float s_ranges[] = { 0, 180 };
             const float* ranges[] = { h_ranges, s_ranges };
             // 使用第0和第1通道
             int channels[] = { 0, 1 };
             calcHist( &ROIImg, 1, channels, Mat(), objrls.Hist, 2, histSize, ranges, true, false );
-            normalize( objrls.Hist, objrls.Hist, 0, 1, NORM_MINMAX);
+            normalize( objrls.Hist, objrls.Hist, 0, 1, NORM_MINMAX, -1, Mat());
             objrls.ID = 0;
+            objrls.OPFrame = 0;
+            objrls.leaveframe = 0;
+            objrls.LeaOPFrame = 0;
             list[dectindex].append(objrls);
         }
         else if(objrls.ObjID == 3)  //an quan mao
@@ -286,6 +308,10 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg)
 void CHuamDectThd::run()
 {
     //int rect[4];
+    cv::Rect rc[3];
+    rc[0] = cv::Rect(574,129,1269,935);
+    rc[1] = cv::Rect(306,158,1308,902);
+    rc[2] = cv::Rect(536,223,801,845);
     while(true)
     {
         if(curImg[dectindex].isNull() == false)
@@ -297,11 +323,11 @@ void CHuamDectThd::run()
             //QTime time;
             //time.start();
 
-            DetectHuman(mat, qimg);
+            DetectHuman(mat, qimg, rc[dectindex]);
             //qDebug()<<time.elapsed()/1000.0<<"s";
             CheckHat();
             mutex.lock();
-            MaintainObj();
+            MaintainObj_2();
             MultiPrepareReid();
 
             emit message(maintainhuman[dectindex], dectindex);
@@ -320,6 +346,98 @@ void CHuamDectThd::run()
         }
         msleep(30);
     }
+}
+void CHuamDectThd::MaintainObj_2()
+{
+    int count = maintainhuman[dectindex].count();
+    int comcount = list[dectindex].count();
+    if(count == 0)
+    {
+        for(int i = 0; i < list[dectindex].count(); i++)
+        {
+            list[dectindex][i].ID = currentObjID[dectindex];
+            maintainhuman[dectindex].append(list[dectindex].at(i));
+            currentObjID[dectindex]++;
+        }
+    }
+    else
+    {
+        for(int i = count - 1; i >= 0; i--)
+        {
+            bool update = false;
+            int iddx = 0;
+            for(int j = 0; j < list[dectindex].count(); j++)
+            {
+                double co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_BHATTACHARYYA );
+                QFile f("coo.txt");
+                if(f.open(QIODevice::Append | QIODevice::Text))
+                {
+                    QTextStream txtOutput(&f);
+                    txtOutput << co << endl;
+                    f.close();
+                }
+
+                if(co < 0.4) //same
+                {
+                    maintainhuman[dectindex][i].Hist = list[dectindex][j].Hist;
+                    maintainhuman[dectindex][i].rect = list[dectindex][j].rect;
+                    maintainhuman[dectindex][i].img = list[dectindex][j].img;
+                    maintainhuman[dectindex][i].leaveframe = 0;
+                    iddx = j;
+                    update = true;
+                    break;
+                }
+
+
+            }
+            if(update == true)
+            {
+                list[dectindex].removeAt(iddx);
+            }
+            else
+            {
+                maintainhuman[dectindex][i].leaveframe++;
+                int lf = maintainhuman[dectindex][i].leaveframe;
+                if(lf > 3)
+                {
+
+                    if(dectindex == 1)
+                    {
+                        for(int m = 0; m < facePerson.count(); m++)
+                        {
+                            if(facePerson[m].name == maintainhuman[dectindex][i].name)
+                            {
+                                facePerson.removeAt(m);
+                                break;
+                            }
+                        }
+                    }
+                    maintainhuman[dectindex].removeAt(i);
+                }
+            }
+        }
+
+
+
+        for(int i = 0; i < list[dectindex].count(); i++)
+        {
+            list[dectindex][i].ID = currentObjID[dectindex];
+            list[dectindex][i].leaveframe = 0;
+            maintainhuman[dectindex].append(list[i]);
+            currentObjID[dectindex]++;
+        }
+    }
+
+
+
+    for(int i = 0; i < maintainhuman[1].count(); i++)
+    {
+        if(maintainhuman[1][i].name == "")  //process one img per time
+        {
+            face_thd->SetParam(maintainhuman[1][i].img, maintainhuman[1][i].ID);
+        }
+    }
+    ProcessOPArea();
 }
 void CHuamDectThd::MaintainObj()
 {
@@ -444,11 +562,42 @@ int CHuamDectThd::isCross(ObjdectRls rls1, ObjdectRls rls2)
     else
         return 0;
 }
+bool CHuamDectThd::isINOpArea(int x, int y)
+{
+    int xl = 1140, xr = 1500, yt = 410, yd = 650;
+    if(x > xl && x < xr && y > yt && y < yd)
+    {
+        return true;
+    }
+    xl = 850;
+    xr = 1300;
+    yt = 600;
+    yd = 1000;
+    if(x > xl && x < xr && y > yt && y < yd)
+    {
+        return true;
+    }
+    return false;
+}
 void CHuamDectThd::ProcessOPArea()
 {
-    for(int i = 0; i < maintainhuman[2].count(); i++)
+    for(int i = 0; i < maintainhuman[0].count(); i++)
     {
-
+        int lx = maintainhuman[0][i].rect.x();
+        int ly = maintainhuman[0][i].rect.y() + maintainhuman[0][i].rect.height();
+        if(isINOpArea(lx, ly))
+        {
+            maintainhuman[0][i].OPFrame++;
+            maintainhuman[0][i].LeaOPFrame = 0;
+        }
+        else
+        {
+            maintainhuman[0][i].LeaOPFrame++;
+            if(maintainhuman[0][i].LeaOPFrame > 20)
+            {
+                maintainhuman[0][i].OPFrame = 0;
+            }
+        }
     }
 }
 void CHuamDectThd::CheckHat()
@@ -457,14 +606,14 @@ void CHuamDectThd::CheckHat()
     int hatCount = hatlist[dectindex].count();
     if(hatCount == 0)
         return;
-    if(humamCount == hatCount)
+    /*if(humamCount == hatCount)
     {
         for(int i = 0; i < humamCount; i++)
         {
             list[dectindex][i].withHat = 1;
         }
         return;
-    }
+    }*/
     for(int i = 0; i < humamCount; i++)
     {
         for(int j = 0; j < hatCount; j++)
@@ -478,8 +627,23 @@ void CHuamDectThd::CheckHat()
         }
     }
 }
+void CHuamDectThd::AddEventDB(int camid, QString staffid, int eventid, QImage img)
+{
+    EventInfo info;
+    info.camid = camid;
+    info.staffid = staffid.toStdString();
+    info.eventid = eventid;
+    info.dectimg = img;
+    info.eventtime = QDateTime::currentDateTime();
+    if (db->ConnectDB())
+    {
+        db->InsertEvent(info);
+        db->CloseDB();
+    }
+}
 void CHuamDectThd::StopRun()
 {
     face_thd->setStop();
+    personReid->StopRun();
     b_stop = true;
 }

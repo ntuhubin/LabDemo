@@ -69,4 +69,13 @@ typedef struct
     QImage dectimg;
 }StrangerInfo, *pStrangerInfo;
 
+typedef struct
+{
+    std::string staffid;
+    int eventid;   //0 nomal enter; 1 no hat
+    QDateTime eventtime;
+    int camid;    // 1-3
+    QImage dectimg;
+}EventInfo, *pEventInfo;
+
 #endif // G_H

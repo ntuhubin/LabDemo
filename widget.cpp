@@ -41,8 +41,10 @@ Widget::Widget(QWidget *parent) :
     }
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();*/
-    m1pts.setPoints(4, 1374,427, 1570,471,1329,630,1157,555);
-    m2pts.setPoints(4, 1139,628, 1273,690,1032,882,869,810);
+    //m1pts.setPoints(4, 1374,427, 1570,471,1329,630,1157,555);
+    //m2pts.setPoints(4, 1139,628, 1273,690,1032,882,869,810);
+    //m1pts.setPoints(4, 1140,410, 1500,410,1500,650,1140,650);
+    //m2pts.setPoints(4, 850,600, 1300,600,1300,1000,850,1000);
 }
 
 Widget::~Widget()
@@ -56,7 +58,6 @@ Widget::~Widget()
     {
         play_thd[i]->stopRealPlay();
     }
-    human_thd->StopRun();
     delete ui;
 }
 void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1开始
@@ -91,6 +92,13 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                 }
                 painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 25, QString::number(rls[i].ID, 10));
                 painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
+                if(idx == 1)
+                {
+                    if(rls.at(i).OPFrame >= 200)
+                    {
+                       painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "op machine");
+                    }
+                }
             }
             //painter.drawRects(rects);
             if(idx == 1)
@@ -101,8 +109,12 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
             }
 
         }
-        //if(idx == 1)
-            //img.save("/tmp/0.jpg");
+        /*if(idx == 1)
+            img.save("/tmp/0.jpg");
+        if(idx == 2)
+            img.save("/tmp/1.jpg");
+        if(idx == 3)
+            img.save("/tmp/2.jpg");*/
     }
     mutex.unlock();
 
@@ -115,16 +127,54 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
     //ui->label_CameraA->setPixmap(fitpixmap);
     cam[idx-1]->setPixmap(fitpixmap);
 }
+void Widget::DealShowObjs(ObjdectRls rls)
+{
+    showobjs.append(rls);
+    if(showobjs.count() > 5)
+        showobjs.removeFirst();
+
+    LAB *plab[5] = {ui->lAB, ui->lAB_2, ui->lAB_3, ui->lAB_4, ui->lAB_5};
+
+    int count = showobjs.count();
+    int ma = min(count, 5);
+    for(int i = 0; i < ma; i++)
+    {
+        showmsg msg;
+        msg.camid = "工位:" + QString::number(showobjs[i].CAMID);
+        if(showobjs[i].withHat == 0)
+        {
+            msg.status = "未戴安全帽";
+            msg.warning = true;
+        }
+        if(showobjs[i].OPFrame >= 45)
+        {
+            msg.status = "操作仪器";
+        }
+        msg.ttime = QDateTime::currentDateTime().toString("HH:mm::ss");
+        msg.img = showobjs[i].img;
+        msg.id = "姓名:" + showobjs[i].name;
+        plab[i]->SetMsg(msg);
+    }
+
+    /*showmsg msg;
+    msg.camid="1";
+    msg.status="背景颜色";
+    msg.warning = true;
+    ui->lAB->SetMsg(msg);*/
+
+}
 void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
 {
     if(idx < 0 || idx > 3)
         return;
     mutex.lock();
     int count = list.count();
+
     objdects[idx].clear();
     for(int i = 0; i < count; i++)
     {
         objdects[idx].append(list[i]);
+        DealShowObjs(list[i]);
     }
     mutex.unlock();
     //int count = objdects[idx].count();
@@ -232,6 +282,7 @@ void Widget::frmMenu()
     menu->addAction("setting", this, SLOT(sysSetup()));
     menu->addAction("start", this, SLOT(sysStart()));
     menu->addAction("register", this, SLOT(sysRegister()));
+    menu->addAction("querry", this, SLOT(sysQuery()));
     menu->exec(QCursor::pos());
     delete menu;
 }
@@ -296,4 +347,9 @@ void Widget::sysRegister()
 {
     RegisterDlg *regdlg = new RegisterDlg();
     regdlg->show();
+}
+void Widget::sysQuery()
+{
+    QueryDlg *querydlg = new QueryDlg();
+    querydlg->show();
 }

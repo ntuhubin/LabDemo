@@ -39,7 +39,9 @@ SOURCES += \
     cfaceclsthread.cpp \
     cfacefeat.cpp \
     cpersonreidthd.cpp \
-    registerdlg.cpp
+    registerdlg.cpp \
+    cdbpro.cpp \
+    querydlg.cpp
 
 #SOURCES += /home/dlib-19.13/dlib/all/source.cpp
 
@@ -61,11 +63,14 @@ HEADERS += \
     cfaceclsthread.h \
     cfacefeat.h \
     cpersonreidthd.h \
-    registerdlg.h
+    registerdlg.h \
+    cdbpro.h \
+    querydlg.h
 
 FORMS += \
         widget.ui \
-    registerdlg.ui
+    registerdlg.ui \
+    querydlg.ui
 
 
 INCLUDEPATH += /home/proj/library/opencv/include \
@@ -100,6 +105,7 @@ LIBS += -L/lib/hclib/ -Wl,-rpath=./:/lib/hclib/HCNetSDKCom:/lib/hclib -lhcnetsdk
 
 INCLUDEPATH += /home/proj/lab/usrcontrol/LAB
 LIBS += /home/proj/lab/usrcontrol/Release/liblabplugin.so
+LIBS += -L/usr/lib/x86_64-linux-gnu/ -lmysqlclient
 
 
 #INCLUDEPATH += /home/dlib-19.13

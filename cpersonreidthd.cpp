@@ -50,7 +50,7 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cp
         {
             qDebug() << score;
         }
-        if(score > 0.8)  //match
+        if(score > 0.6)  //match
         {
             list[i].name = tmp[index].name;
             tmp.removeAt(index);
