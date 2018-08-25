@@ -44,8 +44,10 @@ private:
     CFaceClsThread *face_thd;
     QPolygon m1pts;
     QPolygon m2pts;
+    QList<QString> oplist;
 private:
     void DealShowObjs(ObjdectRls rls);
+    bool IsOperator(QString name);
 private slots:
     void frmMenu();
     void sysSetup();

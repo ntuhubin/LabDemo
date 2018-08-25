@@ -143,7 +143,7 @@ LONG CCameraControl::StartRealPlay(bool b_save, int stream)
     }
     string s = SetFileName();
     char tmp[20];
-    int id = camid + 1;
+    int id = camid;
     sprintf(tmp,"camera%d/",id);
     string ss = tmp;
     filesavename = "./video/" + ss + s;

@@ -162,3 +162,89 @@ void CDbPro::GetEntryPerson(string begintime, string endtime)
    mysql_free_result(ms_res);
    ms_res = NULL;
 }
+void CDbPro::InsertOpRecord(OPRecord record)
+{
+    MYSQL_STMT *stmt = mysql_stmt_init(&mysql);
+    char *query = "insert into oprecord_table(staffID,starttime,leavetime,Img) values(?,?,?,?)";
+    if(mysql_stmt_prepare(stmt, query, strlen(query)))
+    {
+        qDebug() << mysql_stmt_error(stmt);
+        return;
+    }
+    MYSQL_BIND params[4];
+    memset(params, 0, sizeof(params));
+    int idx = 0;
+
+    unsigned long namelen = strlen(record.staffid.c_str());
+    char *c = new char[namelen];
+    strcpy(c,record.staffid.c_str());
+
+    params[idx].buffer_type = MYSQL_TYPE_STRING;
+    params[idx].buffer = c;
+    params[idx].buffer_length = 0;
+    params[idx].is_null= 0;
+    params[idx].length= &namelen;
+    idx++;
+
+    MYSQL_TIME  ts;
+    ts.year= record.starttime.date().year();
+    ts.month= record.starttime.date().month();
+    ts.day= record.starttime.date().day();
+    ts.hour= record.starttime.time().hour();
+    ts.minute= record.starttime.time().minute();
+    ts.second= record.starttime.time().second();
+
+    ts.neg = 0;
+    ts.second_part = 0;
+    params[idx].buffer_type= MYSQL_TYPE_DATETIME;
+    params[idx].buffer= (char *)&ts;
+    params[idx].is_null= 0;
+    params[idx].length= 0;
+    idx++;
+
+    MYSQL_TIME  ts1;
+    ts1.year= record.endtime.date().year();
+    ts1.month= record.endtime.date().month();
+    ts1.day= record.endtime.date().day();
+    ts1.hour= record.endtime.time().hour();
+    ts1.minute= record.endtime.time().minute();
+    ts1.second= record.endtime.time().second();
+
+    ts1.neg = 0;
+    ts1.second_part = 0;
+    params[idx].buffer_type= MYSQL_TYPE_DATETIME;
+    params[idx].buffer= (char *)&ts1;
+    params[idx].is_null= 0;
+    params[idx].length= 0;
+    idx++;
+
+    record.dectimg.save("/tmp/tttt.jpg");
+    unsigned long pl = record.dectimg.byteCount() + 1024;
+    char *p = new char[pl];
+    FILE *fp = NULL;
+    fp = fopen("/tmp/tttt.jpg", "r");
+    unsigned long count = fread(p, 1, pl, fp);
+    fclose(fp);
+
+    params[idx].buffer_type= MYSQL_TYPE_LONG_BLOB;
+    params[idx].buffer= p;
+    params[idx].is_null= 0;
+    params[idx].length= &count;
+
+
+
+    mysql_stmt_bind_param(stmt, params);
+    mysql_stmt_send_long_data(stmt,3,p,pl);
+    int ret = mysql_stmt_execute(stmt);
+    if(ret != 0)
+    {
+        delete c;
+        delete p;
+        qDebug() << mysql_stmt_error(stmt);
+        return;
+    }
+    mysql_stmt_close(stmt);
+
+    delete c;
+    delete p;
+}

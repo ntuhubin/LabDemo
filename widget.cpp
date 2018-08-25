@@ -24,6 +24,7 @@ Widget::Widget(QWidget *parent) :
     {
         currentObjID[i] = 1;
     }
+    oplist.append("4386");
 
     /*for(int i = 0; i < 4; i++)
      {
@@ -57,8 +58,13 @@ Widget::~Widget()
     for(int i = 0; i < 4; i++)
     {
         play_thd[i]->stopRealPlay();
+        //play_thd[i]->stopLocalplay();
     }
     delete ui;
+}
+bool Widget::IsOperator(QString name)
+{
+    return oplist.contains(name);
 }
 void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1开始
 {
@@ -74,17 +80,13 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
 
         if(count != 0 || idx == 1)
         {
-            //QVector<QRectF> rects;
-
             QPainter painter(&img);
             painter.setPen(QPen(Qt::blue, 4, Qt::DashLine));
             QFont font;
             font.setPointSize(35);
             painter.setFont(font);
             for(int i = 0; i < count; i++)
-            {
-                //rects.append(rls.at(i).rect);
-                painter.drawRect(rls.at(i).rect);
+            {             
                 if(rls.at(i).withHat == 0)
                 {
                     QString str = "NO HAT";
@@ -94,13 +96,14 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                 painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
                 if(idx == 1)
                 {
-                    if(rls.at(i).OPFrame >= 200)
+                    if(rls.at(i).OPFrame >= 200 && IsOperator(rls.at(i).name) == false)
                     {
+                       painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
                        painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "op machine");
                     }
                 }
+                painter.drawRect(rls.at(i).rect);
             }
-            //painter.drawRects(rects);
             if(idx == 1)
             {
                 painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
@@ -330,6 +333,16 @@ void Widget::sysStart()
          play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
          play_thd[i]->start();
     }
+    /*play_thd[0]->setPlayClient("/home/cloud2/video/0.mp4", 1);
+    play_thd[1]->setPlayClient("/home/cloud2/video/1.mp4", 2);
+    play_thd[2]->setPlayClient("/home/cloud2/video/2.mp4", 3);
+    play_thd[3]->setPlayClient("/home/cloud2/video/3.mp4", 4);
+    play_thd[0]->start();
+    play_thd[1]->start();
+    play_thd[2]->start();
+    play_thd[3]->start();*/
+
+
     human_thd = new CHuamDectThd(0);
     for(int i = 0; i < 3; i++)
     {

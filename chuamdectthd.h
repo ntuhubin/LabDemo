@@ -37,6 +37,7 @@ public:
     void StopRun();
     void CheckHat();
     int isCross(ObjdectRls rls1, ObjdectRls rls2);
+    bool isINOPLst(string name);
 
     QList<ObjdectRls> maintainhuman[3];  //human in three camera,关联之后的检测结果
     int currentObjID[3];   //三个目标检测  当前可用的ID
@@ -52,6 +53,7 @@ private:
     CFaceClsThread *face_thd;
     CPersonReIDThd *personReid;
     CDbPro *db;
+    QList<OPRecord> recordlst;
 private:
     void run();
     void MaintainObj();

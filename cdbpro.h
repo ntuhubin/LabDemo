@@ -16,6 +16,13 @@ typedef struct
     std::string camid;    // 1-3
     QImage dectimg;
 }EventQuery, *pEventQuery;
+typedef struct
+{
+    std::string staffid;
+    QDateTime starttime;
+    QDateTime endtime;
+    QImage dectimg;
+}OPRecord,*pOPRecord;
 
 class CDbPro
 {
@@ -25,6 +32,7 @@ public:
     void CloseDB();
     void InsertEvent(EventInfo info);
     void GetEntryPerson(string begintime, string endtime);
+    void InsertOpRecord(OPRecord record);
 public:
     QList<EventQuery> eq_list;
 private:

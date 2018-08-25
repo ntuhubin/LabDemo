@@ -401,7 +401,7 @@ void CHuamDectThd::MaintainObj_2()
                 if(lf > 3)
                 {
 
-                    if(dectindex == 1)
+                    /*if(dectindex == 1)
                     {
                         for(int m = 0; m < facePerson.count(); m++)
                         {
@@ -411,7 +411,7 @@ void CHuamDectThd::MaintainObj_2()
                                 break;
                             }
                         }
-                    }
+                    }*/
                     maintainhuman[dectindex].removeAt(i);
                 }
             }
@@ -579,6 +579,16 @@ bool CHuamDectThd::isINOpArea(int x, int y)
     }
     return false;
 }
+bool CHuamDectThd::isINOPLst(string name)
+{
+    foreach (auto record, recordlst) {
+        if(record.staffid == name)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 void CHuamDectThd::ProcessOPArea()
 {
     for(int i = 0; i < maintainhuman[0].count(); i++)
@@ -589,6 +599,17 @@ void CHuamDectThd::ProcessOPArea()
         {
             maintainhuman[0][i].OPFrame++;
             maintainhuman[0][i].LeaOPFrame = 0;
+            if(maintainhuman[0][i].OPFrame > 50)
+            {
+                if(isINOPLst(maintainhuman[0][i].name.toStdString()) == false)
+                {
+                    OPRecord record;
+                    record.staffid = maintainhuman[0][i].name.toStdString();
+                    record.starttime = QDateTime::currentDateTime();
+                    record.dectimg = maintainhuman[0][i].img;
+                    recordlst.append(record);
+                }
+            }
         }
         else
         {
@@ -596,6 +617,20 @@ void CHuamDectThd::ProcessOPArea()
             if(maintainhuman[0][i].LeaOPFrame > 20)
             {
                 maintainhuman[0][i].OPFrame = 0;
+                int count = recordlst.count();
+                for(int i = count - 1; i>=0; i--)
+                {
+                    auto record = recordlst.at(i);
+                    if(record.staffid == maintainhuman[0][i].name.toStdString())
+                    {
+                        record.endtime = QDateTime::currentDateTime();
+                        db->ConnectDB();
+                        db->InsertOpRecord(record);
+                        db->CloseDB();
+                        recordlst.removeAt(i);
+                        break;
+                    }
+                }
             }
         }
     }
