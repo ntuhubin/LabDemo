@@ -56,16 +56,16 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="page">
     <widget class="QTableView" name="tv_EventInfo">
      <property name="geometry">
       <rect>
-       <x>-10</x>
-       <y>20</y>
-       <width>561</width>
-       <height>461</height>
+       <x>0</x>
+       <y>0</y>
+       <width>562</width>
+       <height>480</height>
       </rect>
      </property>
     </widget>
@@ -83,7 +83,31 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="page_2"/>
+   <widget class="QWidget" name="page_2">
+    <widget class="QTableView" name="tv_OPInfo">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>562</width>
+       <height>480</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_oppic">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>30</y>
+       <width>101</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OPPIC</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QPushButton" name="btn_query">
    <property name="geometry">
@@ -96,6 +120,19 @@
    </property>
    <property name="text">
     <string>query</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnSwitch">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>20</y>
+     <width>80</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Switch</string>
    </property>
   </widget>
  </widget>

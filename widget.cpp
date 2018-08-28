@@ -64,6 +64,8 @@ Widget::~Widget()
 }
 bool Widget::IsOperator(QString name)
 {
+    if(name == "")
+        return false;
     return oplist.contains(name);
 }
 void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1开始
@@ -96,7 +98,7 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                 painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
                 if(idx == 1)
                 {
-                    if(rls.at(i).OPFrame >= 200 && IsOperator(rls.at(i).name) == false)
+                    if(rls.at(i).OPFrame >= 45 && IsOperator(rls.at(i).name) == false)
                     {
                        painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
                        painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "op machine");
@@ -132,13 +134,22 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
 }
 void Widget::DealShowObjs(ObjdectRls rls)
 {
+    int count = showobjs.count();
+    for(int i = count - 1; i >=0; i--)
+    {
+        if((rls.CAMID == showobjs[i].CAMID) && (rls.ID == showobjs[i].ID))
+        {
+            showobjs.removeAt(i);
+        }
+    }
+
     showobjs.append(rls);
     if(showobjs.count() > 5)
         showobjs.removeFirst();
 
     LAB *plab[5] = {ui->lAB, ui->lAB_2, ui->lAB_3, ui->lAB_4, ui->lAB_5};
 
-    int count = showobjs.count();
+    count = showobjs.count();
     int ma = min(count, 5);
     for(int i = 0; i < ma; i++)
     {
@@ -333,10 +344,10 @@ void Widget::sysStart()
          play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
          play_thd[i]->start();
     }
-    /*play_thd[0]->setPlayClient("/home/cloud2/video/0.mp4", 1);
-    play_thd[1]->setPlayClient("/home/cloud2/video/1.mp4", 2);
-    play_thd[2]->setPlayClient("/home/cloud2/video/2.mp4", 3);
-    play_thd[3]->setPlayClient("/home/cloud2/video/3.mp4", 4);
+    /*play_thd[0]->setPlayClient("./video/camera1/20180827102935.mp4", 1);
+    play_thd[1]->setPlayClient("./video/camera2/20180827102935.mp4", 2);
+    play_thd[2]->setPlayClient("./video/camera3/20180827102935.mp4", 3);
+    play_thd[3]->setPlayClient("./video/camera4/20180827102935.mp4", 4);
     play_thd[0]->start();
     play_thd[1]->start();
     play_thd[2]->start();

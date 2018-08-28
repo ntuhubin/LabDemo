@@ -13,7 +13,11 @@ QueryDlg::QueryDlg(QWidget *parent) :
     ui->dte_End->setDateTime(QDateTime::currentDateTime());
     ui->tv_EventInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tv_EventInfo->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tv_OPInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tv_OPInfo->setEditTriggers(QAbstractItemView::NoEditTriggers);
     searchcount = 0;
+    currentindex = 0;
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 QueryDlg::~QueryDlg()
@@ -50,6 +54,31 @@ void QueryDlg::showEventInfos()
         ui->tv_EventInfo->setColumnWidth(3,140);
     }
 }
+void QueryDlg::showOpRecords()
+{
+    QStandardItemModel  *model;
+    model = new QStandardItemModel();
+    model->setColumnCount(3);
+    model->setHeaderData(0,Qt::Horizontal,"ID");
+    model->setHeaderData(1,Qt::Horizontal,"starttime");
+    model->setHeaderData(2,Qt::Horizontal,"leavetime");
+    ui->tv_OPInfo->setModel(model);
+    ui->tv_OPInfo->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    for(int i = 0; i < sqlpro.op_lst.count(); i++)
+    {
+        QString id = QString::fromStdString(sqlpro.op_lst[i].staffid);
+        model->setItem(i,0,new QStandardItem(id));
+
+        QString dt = QString::fromStdString(sqlpro.op_lst[i].starttime);
+        model->setItem(i, 1, new QStandardItem(dt));
+        QString cid = QString::fromStdString(sqlpro.op_lst[i].endtime);
+        model->setItem(i,2,new QStandardItem(cid));
+        ui->tv_OPInfo->setColumnWidth(0,180);
+        ui->tv_OPInfo->setColumnWidth(1,180);
+        ui->tv_OPInfo->setColumnWidth(2,180);
+
+    }
+}
 void QueryDlg::on_btn_query_clicked()
 {
     QDateTime begin = ui->dte_Begin->dateTime();
@@ -66,11 +95,22 @@ void QueryDlg::on_btn_query_clicked()
         QMessageBox::about(NULL, "warning", "DB ERROR");
         return;
     }
-    sqlpro.GetEntryPerson(begin.toString("yyyy-MM-dd hh:mm:ss").toStdString(),
-                          end.toString("yyyy-MM-dd hh:mm:ss").toStdString());
+    if(currentindex == 0)
+    {
+        sqlpro.GetEntryPerson(begin.toString("yyyy-MM-dd hh:mm:ss").toStdString(),
+                              end.toString("yyyy-MM-dd hh:mm:ss").toStdString());
+
+        showEventInfos();
+        searchcount = sqlpro.eq_list.count();
+    }
+    else {
+        sqlpro.GetOpRecord(begin.toString("yyyy-MM-dd hh:mm:ss").toStdString(),
+                              end.toString("yyyy-MM-dd hh:mm:ss").toStdString());
+
+        showOpRecords();
+        searchcount = sqlpro.op_lst.count();
+    }
     sqlpro.CloseDB();
-    showEventInfos();
-    searchcount = sqlpro.eq_list.count();
 }
 
 void QueryDlg::on_tv_EventInfo_clicked(const QModelIndex &index)
@@ -82,8 +122,35 @@ void QueryDlg::on_tv_EventInfo_clicked(const QModelIndex &index)
        return;
     if(searchcount != 0)
     {
-        QPixmap mp = QPixmap::fromImage(sqlpro.eq_list[row].dectimg);
-        ui->label_pic->setScaledContents(true);
-        ui->label_pic->setPixmap(mp);
+
+
+         QPixmap mp = QPixmap::fromImage(sqlpro.eq_list[row].dectimg);
+         ui->label_pic->setScaledContents(true);
+         ui->label_pic->setPixmap(mp);
+
+    }
+}
+
+void QueryDlg::on_btnSwitch_clicked()
+{
+    currentindex = 1 - currentindex;
+    ui->stackedWidget->setCurrentIndex(currentindex);
+}
+
+void QueryDlg::on_tv_OPInfo_clicked(const QModelIndex &index)
+{
+    int row = ui->tv_OPInfo->currentIndex().row();
+    if(row < 0)
+       return;
+    if(row >= searchcount)
+       return;
+    if(searchcount != 0)
+    {
+
+        QPixmap mp = QPixmap::fromImage(sqlpro.op_lst[row].dectimg);
+        ui->label_oppic->setScaledContents(true);
+        ui->label_oppic->setPixmap(mp);
+
+
     }
 }

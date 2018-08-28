@@ -248,3 +248,66 @@ void CDbPro::InsertOpRecord(OPRecord record)
     delete c;
     delete p;
 }
+void CDbPro::GetOpRecord(string begintime, string endtime)
+{
+    op_lst.clear();
+    std::string str_sqls; // = "select personname,capDate,cappic,belief from persontrace";
+    char sqlchar[200];
+    sprintf(sqlchar,"select staffID,starttime,leavetime,Img from oprecord_table where starttime between '%s' and '%s'",begintime.c_str(),endtime.c_str());
+    str_sqls = sqlchar;
+    int res = 0;
+    const char *p = str_sqls.c_str();
+    res = mysql_real_query(&mysql, p, str_sqls.size());
+    if (res != 0)
+    {
+        return;
+    }
+    //
+   MYSQL_RES *ms_res = mysql_store_result(&mysql);
+   unsigned long *lengths;
+   if (ms_res != NULL)
+   {
+       unsigned int field_num = mysql_num_fields(ms_res);
+       //
+       MYSQL_FIELD* field_info = mysql_fetch_field(ms_res);
+       //assert(field_info != NULL);
+       MYSQL_ROW row_data = NULL;
+       while (1) {
+           row_data = mysql_fetch_row(ms_res);    //
+           if (row_data == NULL)
+               break;
+           OPQuery record;
+           lengths = mysql_fetch_lengths(ms_res);
+           record.staffid = row_data[0];
+           record.starttime =  row_data[1];
+           record.endtime = row_data[2];
+
+           unsigned int imglen = lengths[3];
+           unsigned char *img = new unsigned char[imglen];
+           //qDebug << row_data[0];
+           //qDebug << row_data[1];
+           memcpy(img, row_data[3],imglen);
+           QImage qimg;
+           qimg.loadFromData(img, imglen);
+           record.dectimg = qimg;
+
+           //result.capimg.save("./a.jpeg");
+           op_lst.append(record);
+           /*FILE *fp = NULL;
+           fp = fopen("./res.jpeg","wb");
+           fwrite(img,imglen,1,fp);
+           fclose(fp);*/
+           delete img;
+           //qDebug << row_data[3];
+           /*for (int i = 0; i < field_num; ++i)
+           {
+               if (row_data[i] == NULL)
+               {
+                    //qDebug<<field_info[i];
+               }
+           }*/
+       }
+   }
+   mysql_free_result(ms_res);
+   ms_res = NULL;
+}

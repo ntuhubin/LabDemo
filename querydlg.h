@@ -23,11 +23,17 @@ private slots:
 
     void on_tv_EventInfo_clicked(const QModelIndex &index);
 
+    void on_btnSwitch_clicked();
+
+    void on_tv_OPInfo_clicked(const QModelIndex &index);
+
 private:
     CDbPro sqlpro;
     int searchcount;
+    int currentindex;
 private:
     void showEventInfos();
+    void showOpRecords();
 
 private:
     Ui::QueryDlg *ui;

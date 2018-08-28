@@ -614,7 +614,7 @@ void CHuamDectThd::ProcessOPArea()
         else
         {
             maintainhuman[0][i].LeaOPFrame++;
-            if(maintainhuman[0][i].LeaOPFrame > 20)
+            if(maintainhuman[0][i].LeaOPFrame > 50)
             {
                 maintainhuman[0][i].OPFrame = 0;
                 int count = recordlst.count();

@@ -24,6 +24,14 @@ typedef struct
     QImage dectimg;
 }OPRecord,*pOPRecord;
 
+typedef struct
+{
+    std::string staffid;
+    std::string starttime;
+    std::string endtime;
+    QImage dectimg;
+}OPQuery,*pOPQuery;
+
 class CDbPro
 {
 public:
@@ -33,8 +41,10 @@ public:
     void InsertEvent(EventInfo info);
     void GetEntryPerson(string begintime, string endtime);
     void InsertOpRecord(OPRecord record);
+    void GetOpRecord(string begintime, string endtime);
 public:
     QList<EventQuery> eq_list;
+    QList<OPQuery> op_lst;
 private:
     MYSQL mysql;
     MYSQL_RES *result;
