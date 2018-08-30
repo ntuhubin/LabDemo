@@ -65,6 +65,8 @@ private:
     void ProcessOPArea();
 
     void AddEventDB(int camid, QString staffid, int eventid, QImage img);
+
+    double xmulti(cv::Point pa,cv::Point pb,cv::Point pc);
 };
 
 #endif // CHUAMDECTTHD_H

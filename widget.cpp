@@ -42,8 +42,8 @@ Widget::Widget(QWidget *parent) :
     }
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();*/
-    //m1pts.setPoints(4, 1374,427, 1570,471,1329,630,1157,555);
-    //m2pts.setPoints(4, 1139,628, 1273,690,1032,882,869,810);
+    m1pts.setPoints(4, 1374,427, 1550,471,1329,630,1157,555);
+    m2pts.setPoints(4, 1139,628, 1273,690,1000,950,760,880);
     //m1pts.setPoints(4, 1140,410, 1500,410,1500,650,1140,650);
     //m2pts.setPoints(4, 850,600, 1300,600,1300,1000,850,1000);
 }
@@ -57,8 +57,8 @@ Widget::~Widget()
     human_thd->StopRun();
     for(int i = 0; i < 4; i++)
     {
-        play_thd[i]->stopRealPlay();
-        //play_thd[i]->stopLocalplay();
+        //play_thd[i]->stopRealPlay();
+        play_thd[i]->stopLocalplay();
     }
     delete ui;
 }
@@ -98,10 +98,14 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
                 painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
                 if(idx == 1)
                 {
-                    if(rls.at(i).OPFrame >= 45 && IsOperator(rls.at(i).name) == false)
+                    if(rls.at(i).OPFrame >= 50 && IsOperator(rls.at(i).name) == false)
                     {
                        painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
                        painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "op machine");
+                    }
+                    else
+                    {
+                        painter.setPen(QPen(Qt::blue, 4, Qt::DashLine));
                     }
                 }
                 painter.drawRect(rls.at(i).rect);
@@ -135,11 +139,13 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
 void Widget::DealShowObjs(ObjdectRls rls)
 {
     int count = showobjs.count();
+    rls.captime = QDateTime::currentDateTime();
     for(int i = count - 1; i >=0; i--)
     {
         if((rls.CAMID == showobjs[i].CAMID) && (rls.ID == showobjs[i].ID))
         {
             showobjs.removeAt(i);
+            break;
         }
     }
 
@@ -164,7 +170,7 @@ void Widget::DealShowObjs(ObjdectRls rls)
         {
             msg.status = "操作仪器";
         }
-        msg.ttime = QDateTime::currentDateTime().toString("HH:mm::ss");
+        msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
         msg.img = showobjs[i].img;
         msg.id = "姓名:" + showobjs[i].name;
         plab[i]->SetMsg(msg);
@@ -341,17 +347,17 @@ void Widget::sysStart()
     {
          play_thd[i] = new PlayLocalM4();
          connect(play_thd[i], &PlayLocalM4::message, this, &Widget::recvImg);
-         play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
-         play_thd[i]->start();
+         //play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
+         //play_thd[i]->start();
     }
-    /*play_thd[0]->setPlayClient("./video/camera1/20180827102935.mp4", 1);
-    play_thd[1]->setPlayClient("./video/camera2/20180827102935.mp4", 2);
-    play_thd[2]->setPlayClient("./video/camera3/20180827102935.mp4", 3);
-    play_thd[3]->setPlayClient("./video/camera4/20180827102935.mp4", 4);
+    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch01_20180827125633.mp4", 1);
+    play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch02_20180827125633.mp4", 2);
+    play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch03_20180827125633.mp4", 3);
+    play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch04_20180827125633.mp4", 4);
     play_thd[0]->start();
     play_thd[1]->start();
     play_thd[2]->start();
-    play_thd[3]->start();*/
+    play_thd[3]->start();
 
 
     human_thd = new CHuamDectThd(0);

@@ -368,16 +368,21 @@ void CHuamDectThd::MaintainObj_2()
             int iddx = 0;
             for(int j = 0; j < list[dectindex].count(); j++)
             {
-                double co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_BHATTACHARYYA );
-                QFile f("coo.txt");
+                double co = 1;
+                if(maintainhuman[dectindex][i].Hist.type() == list[dectindex][j].Hist.type())
+                {
+                    co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_BHATTACHARYYA );
+                }
+
+                /*QFile f("coo.txt");
                 if(f.open(QIODevice::Append | QIODevice::Text))
                 {
                     QTextStream txtOutput(&f);
                     txtOutput << co << endl;
                     f.close();
-                }
+                }*/
 
-                if(co < 0.4) //same
+                if(co < 0.40) //same
                 {
                     maintainhuman[dectindex][i].Hist = list[dectindex][j].Hist;
                     maintainhuman[dectindex][i].rect = list[dectindex][j].rect;
@@ -398,7 +403,7 @@ void CHuamDectThd::MaintainObj_2()
             {
                 maintainhuman[dectindex][i].leaveframe++;
                 int lf = maintainhuman[dectindex][i].leaveframe;
-                if(lf > 3)
+                if(lf > 4)
                 {
 
                     /*if(dectindex == 1)
@@ -524,7 +529,7 @@ void CHuamDectThd::MaintainObj()
             while (it.hasNext())
             {
                 ObjdectRls rls = it.next();
-                if(rls.leaveframe > 2)
+                if(rls.leaveframe > 4)
                 {
                     //第二个摄像头中的人走掉之后，将其从人脸列表移除
                     if(dectindex == 1)
@@ -562,9 +567,61 @@ int CHuamDectThd::isCross(ObjdectRls rls1, ObjdectRls rls2)
     else
         return 0;
 }
+double CHuamDectThd::xmulti(Point pa, Point pb, Point pc)
+{
+    return (pb.x-pa.x)*(pc.y-pa.y) - (pb.y-pa.y)*(pc.x-pa.x);
+}
 bool CHuamDectThd::isINOpArea(int x, int y)
 {
-    int xl = 1140, xr = 1500, yt = 410, yd = 650;
+    bool ret = true;
+    bool retb = true;
+    float eps = 0.0000000001;
+    cv::Point pt;
+    pt.x = x;
+    pt.y = y;
+    cv::Point rectA[4];
+    rectA[0].x = 1374;
+    rectA[0].y = 427;
+    rectA[1].x = 1550;
+    rectA[1].y = 471;
+    rectA[2].x = 1329;
+    rectA[2].y = 630;
+    rectA[3].x = 1157;
+    rectA[3].y = 555;
+    for(int i = 3; i >=1; i--)
+    {
+        if (xmulti(pt, rectA[i], rectA[i-1]) > 0)
+        {
+            ret = false;
+            break;
+        }
+    }
+    if(ret == true)
+        return ret;
+    rectA[0].x = 1139;
+    rectA[0].y = 628;
+    rectA[1].x = 1273;
+    rectA[1].y = 690;
+    rectA[2].x = 1000;
+    rectA[2].y = 950;
+    rectA[3].x = 760;
+    rectA[3].y = 880;
+    for(int i = 3; i >=1; i--)
+    {
+        if (xmulti(pt, rectA[i], rectA[i-1]) > 0)
+        {
+            retb = false;
+            break;
+        }
+    }
+    if(ret == false && retb == false)
+    {
+        return false;
+    }
+    return true;
+
+
+    /*int xl = 1140, xr = 1500, yt = 410, yd = 650;
     if(x > xl && x < xr && y > yt && y < yd)
     {
         return true;
@@ -577,7 +634,7 @@ bool CHuamDectThd::isINOpArea(int x, int y)
     {
         return true;
     }
-    return false;
+    return false;*/
 }
 bool CHuamDectThd::isINOPLst(string name)
 {
@@ -614,7 +671,7 @@ void CHuamDectThd::ProcessOPArea()
         else
         {
             maintainhuman[0][i].LeaOPFrame++;
-            if(maintainhuman[0][i].LeaOPFrame > 50)
+            if(maintainhuman[0][i].LeaOPFrame > 10)
             {
                 maintainhuman[0][i].OPFrame = 0;
                 int count = recordlst.count();

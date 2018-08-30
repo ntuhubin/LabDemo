@@ -17,6 +17,7 @@ typedef struct
     QImage img;   // capture image
     int OPFrame;    //站在操作区的帧数，超过一定帧则认为在操作机器
     int LeaOPFrame;  //离开操作区的帧数，超过一定帧则将OPFrame清0
+    QDateTime captime;
     cv::MatND Hist;   //hist of human, used for match
 }ObjdectRls;
 typedef struct
