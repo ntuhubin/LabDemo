@@ -172,7 +172,7 @@ void Widget::DealShowObjs(ObjdectRls rls)
         }
         msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
         msg.img = showobjs[i].img;
-        msg.id = "姓名:" + showobjs[i].name;
+        msg.id = showobjs[i].name;
         plab[i]->SetMsg(msg);
     }
 
@@ -350,10 +350,10 @@ void Widget::sysStart()
          //play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
          //play_thd[i]->start();
     }
-    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch01_20180827125633.mp4", 1);
-    play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch02_20180827125633.mp4", 2);
-    play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch03_20180827125633.mp4", 3);
-    play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180827/ch04_20180827125633.mp4", 4);
+    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/4.mp4", 1);
+    play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/1.mp4", 2);
+    play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/3.mp4", 3);
+    play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/2.mp4", 4);
     play_thd[0]->start();
     play_thd[1]->start();
     play_thd[2]->start();

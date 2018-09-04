@@ -11,6 +11,7 @@ using namespace std;
 using tensorflow::Tensor;
 using tensorflow::Status;
 
+
 namespace michi_object_detector {
 
 class ObjectDetector {

@@ -1,6 +1,7 @@
 #include "object_detection_wrapper.h"
 #include "tensorflow_object_detector.h"
 
+
 static bool init_object = false;
 michi_object_detector::ObjectDetector object_detector;
 

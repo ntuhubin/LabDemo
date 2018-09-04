@@ -172,3 +172,8 @@ void RegisterDlg::Classify()
     QMessageBox::about(NULL, "about", "注册完成");
 
 }
+
+void RegisterDlg::on_btnEixt_clicked()
+{
+    this->close();
+}

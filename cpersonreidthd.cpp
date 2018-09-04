@@ -35,6 +35,7 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cp
     int index = -1;
     for(int i = 0; i < list.count(); i++)
     {
+        list[i].name = "";
         Mat img1 = publicFun::QImageToMat(list[i].img);
         for(int j = 0; j < tmp.count(); j++)
         {
@@ -48,9 +49,15 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cp
         }
         if(camid == 3)
         {
-            qDebug() << score;
+            QFile f("reid.txt");
+            if(f.open(QIODevice::Append | QIODevice::Text))
+            {
+                QTextStream txtOutput(&f);
+                txtOutput << score << endl;
+                f.close();
+            }
         }
-        if(score > 0.8)  //match
+        if(score > 0.9)  //match
         {
             list[i].name = tmp[index].name;
             tmp.removeAt(index);
@@ -74,7 +81,14 @@ ObjdectRls CPersonReIDThd::ComparePerson(QList<ObjdectRls> list, ObjdectRls rls)
             index = i;
         }
     }
-    if(score > 0)  //match
+    QFile f("reid.txt");
+    if(f.open(QIODevice::Append | QIODevice::Text))
+    {
+        QTextStream txtOutput(&f);
+        txtOutput << score << endl;
+        f.close();
+    }
+    if(score > 0.9)  //match
     {
         list[index].name = rls.name;
         return list[index];
@@ -113,10 +127,10 @@ float CPersonReIDThd::GetSocre(Mat img1, Mat img2)
 {
     img1.convertTo(img1, CV_32FC1);
     resize(img1, img1, cv::Size(input_width,input_height), 0, 0, CV_INTER_CUBIC);
-    cvtColor(img1, img1, COLOR_BGR2RGB);
+    //cvtColor(img1, img1, COLOR_BGR2RGB);
     img2.convertTo(img2, CV_32FC1);
     resize(img2, img2, cv::Size(input_width,input_height), 0, 0, CV_INTER_CUBIC);
-    cvtColor(img2, img2, COLOR_BGR2RGB);
+    //cvtColor(img2, img2, COLOR_BGR2RGB);
     tensorflow::Tensor input_tensor(tensorflow::DT_FLOAT, tensorflow::TensorShape({2, 1, input_height,input_width, 3}));
     auto input_tensor_mapped = input_tensor.tensor<float, 5>();
 
@@ -150,8 +164,8 @@ float CPersonReIDThd::GetSocre(Mat img1, Mat img2)
 
       tensorflow::Tensor output = std::move(outputs.at(0));
       auto scores = output.flat<float>();
-      return (scores(0) - scores(1));
-
+      //return (scores(0) - scores(1));
+      return scores(0);
         //cout << "prob of same person:" << scores(0) << "  prob of different person:" << scores(1) << endl;
 }
 void CPersonReIDThd::run()

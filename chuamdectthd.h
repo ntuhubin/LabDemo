@@ -9,6 +9,7 @@
 #include <QRectF>
 #include "objectdect/object_detection_wrapper.h"
 
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -20,6 +21,14 @@
 
 using namespace cv;
 using namespace std;
+typedef struct
+{
+    int cm;
+    int cd;
+    double corssarea;
+    double bhatdis;
+}DisPair, *pDisPair;
+
 
 class CHuamDectThd:public QThread
 {
@@ -38,6 +47,8 @@ public:
     void CheckHat();
     int isCross(ObjdectRls rls1, ObjdectRls rls2);
     bool isINOPLst(string name);
+    bool static GreaterSort (DisPair a,DisPair b) { return (a.corssarea>b.corssarea); }
+    bool static LessSort (DisPair a,DisPair b) { return (a.bhatdis<b.bhatdis); }
 
     QList<ObjdectRls> maintainhuman[3];  //human in three camera,关联之后的检测结果
     int currentObjID[3];   //三个目标检测  当前可用的ID
@@ -54,10 +65,14 @@ private:
     CPersonReIDThd *personReid;
     CDbPro *db;
     QList<OPRecord> recordlst;
+
 private:
     void run();
     void MaintainObj();
     void MaintainObj_2();
+    void MaintainObj_3();
+
+
     void PrepareReid(ObjdectRls Objrls);
     void MultiPrepareReid();
 

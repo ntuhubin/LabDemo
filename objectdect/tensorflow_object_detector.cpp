@@ -1,3 +1,4 @@
+
 #include "tensorflow_object_detector.h"
 
 #include "tensorflow/cc/ops/const_op.h"
@@ -15,8 +16,8 @@ bool ObjectDetector::LoadGraph(const string& frozen_graph_path) {
 
   // Set GPU options
   // tensorflow::graph::SetDefaultDevice("/gpu:0", &graph_def);
-  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.4);
-  opts.config.mutable_gpu_options()->set_allow_growth(true);
+  opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(0.2);
+  opts.config.mutable_gpu_options()->set_allow_growth(false);
 
   Status load_graph_status =
     ReadBinaryProto(tensorflow::Env::Default(), frozen_graph_path, &graph_def);

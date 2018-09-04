@@ -74,9 +74,9 @@ FORMS += \
 
 
 INCLUDEPATH += /home/proj/library/opencv/include \
-/home/proj/library/tensorflow \
-/home/proj/library/tensorflow/third_party \
-/home/proj/library/tensorflow/bazel-genfiles \
+/home/proj/library/tensorflow1.9 \
+/home/proj/library/tensorflow1.9/third_party \
+/home/proj/library/tensorflow1.9/bazel-genfiles \
 /usr/local/lib/python3.5/dist-packages \
 /usr/local/lib/python3.5/dist-packages/tensorflow/include \
 /usr/local/lib/python3.5/dist-packages/tensorflow/include/external/nsync/public
@@ -98,7 +98,7 @@ LIBS += /home/proj/library/opencv/build/lib/libopencv_core.so \
 #/usr/lib/x86_64-linux-gnu/libjpeg.a
 
 
-LIBS += -L/home/proj/lab/human_cpp_detector/lib -ltensorflow_cc -ltensorflow_framework
+LIBS += -L/home/proj/lab/human_cpp_detector_tf1.9/lib -ltensorflow_cc -ltensorflow_framework
 
 
 LIBS += -L/lib/hclib/ -Wl,-rpath=./:/lib/hclib/HCNetSDKCom:/lib/hclib -lhcnetsdk -lPlayCtrl -lAudioRender -lSuperRender

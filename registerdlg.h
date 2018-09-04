@@ -24,6 +24,8 @@ private slots:
     void LoadImage();
     void Classify();
 
+    void on_btnEixt_clicked();
+
 public:
     explicit RegisterDlg(QWidget *parent = 0);
     ~RegisterDlg();

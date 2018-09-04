@@ -237,19 +237,19 @@ void CHuamDectThd::PrepareReid(ObjdectRls Objrls)
 int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
 {
     DetectedObjectGroup detected_object_group;
-    const float score_threshold = 0.5f;
-    const int max_num_detections = 10;
-    string frozen_graph_path = "helmet_model_v4.pb.quantize";
+    const float score_threshold = 0.6f;
+    const int max_num_detections = 6;
+    string frozen_graph_path = "helmet_model_v3.pb.quantize";
     const DetectorType detector_type = HUMAN;
     //Mat imgage = img.clone();
-    Mat roi;
-    roi=img(rc);
-    Mat dectroi = roi.clone();
+    //Mat roi;
+    //roi=img(rc);
+    //Mat dectroi = roi.clone();
     /*img = img(rc);
     string name = std::to_string(dectindex) + ".jpg";
     imwrite(name, img);
     img = imread(name);*/
-    if (!Detection(dectroi, &detected_object_group, frozen_graph_path,
+    if (!Detection(img, &detected_object_group, frozen_graph_path,
                        detector_type, score_threshold, max_num_detections)) {
         return -1;
     }
@@ -271,8 +271,8 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
         objrls.ObjID = detected_object.object_id;
         objrls.withHat = 0;
 
-        objrls.rect = QRectF(detected_object.left + rc.x, detected_object.top + rc.y, detected_object.width,detected_object.height);
-        //objrls.rect = QRectF(detected_object.left, detected_object.top, detected_object.width,detected_object.height);
+        //objrls.rect = QRectF(detected_object.left + rc.x, detected_object.top + rc.y, detected_object.width,detected_object.height);
+        objrls.rect = QRectF(detected_object.left, detected_object.top, detected_object.width,detected_object.height);
         objrls.img = qimg.copy(objrls.rect.toRect());
         if(objrls.ObjID == 1) //human
         {
@@ -327,7 +327,18 @@ void CHuamDectThd::run()
             //qDebug()<<time.elapsed()/1000.0<<"s";
             CheckHat();
             mutex.lock();
-            MaintainObj_2();
+            MaintainObj_3();
+
+            for(int i = 0; i < maintainhuman[1].count(); i++)
+            {
+                if(maintainhuman[1][i].name == "")  //process one img per time
+                {
+                    face_thd->SetParam(maintainhuman[1][i].img, maintainhuman[1][i].ID);
+                }
+            }
+
+            //ProcessOPArea();
+
             MultiPrepareReid();
 
             emit message(maintainhuman[dectindex], dectindex);
@@ -345,6 +356,112 @@ void CHuamDectThd::run()
             break;
         }
         msleep(30);
+    }
+}
+void CHuamDectThd::MaintainObj_3()
+{
+    int count = maintainhuman[dectindex].count();
+    int comcount = list[dectindex].count();
+    if(count == 0)
+    {
+        for(int i = 0; i < comcount; i++)
+        {
+            list[dectindex][i].ID = currentObjID[dectindex];
+            list[dectindex][i].leaveframe = 0;
+            maintainhuman[dectindex].append(list[dectindex][i]);
+            currentObjID[dectindex]++;
+        }
+        return;
+    }
+    if(comcount == 0)
+    {
+        for(int i = count - 1; i >= 0; i--)
+        {
+            maintainhuman[dectindex][i].leaveframe++;
+            if(maintainhuman[dectindex][i].leaveframe > 3)
+            {
+                maintainhuman[dectindex].removeAt(i);
+            }
+        }
+        return;
+    }
+    int mc[count];
+    int dc[comcount];
+    std::vector<DisPair> pairvector;
+    for(int i = 0; i < count; i++)
+    {
+        for (int j = 0; j < comcount; j++)
+        {
+            DisPair dp;
+            dp.cm = i;
+            dp.cd = j;
+            double co = 100;
+            if(maintainhuman[dectindex][i].Hist.type() == list[dectindex][j].Hist.type())
+            {
+                co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_BHATTACHARYYA );
+            }
+            dp.bhatdis = co;
+            QRectF r = maintainhuman[dectindex][i].rect.intersected(list[dectindex][j].rect);
+            dp.corssarea = r.width() * r.height();
+            pairvector.push_back(dp);
+            dc[j] = 0;
+        }
+        mc[i] = 0;
+    }
+    std::sort(pairvector.begin(), pairvector.end(), LessSort);
+    for(auto it = pairvector.begin(); it != pairvector.end(); it++)
+    {
+        if(mc[it->cm] == 1)
+        {
+            continue;
+        }
+        if(dc[it->cd] == 1)
+        {
+            continue;
+        }
+        if(it->corssarea == 0)
+        {
+            continue;
+        }
+        if (it->bhatdis > 1)
+        {
+            continue;
+        }
+
+        maintainhuman[dectindex][it->cm].Hist = list[dectindex][it->cd].Hist;
+        maintainhuman[dectindex][it->cm].rect = list[dectindex][it->cd].rect;
+        maintainhuman[dectindex][it->cm].img = list[dectindex][it->cd].img;
+        maintainhuman[dectindex][it->cm].leaveframe = 0;
+        mc[it->cm] = 1;
+        dc[it->cd] = 1;
+    }
+    for(int i = count - 1; i >= 0; i--)
+    {
+        if(mc[i] == 0)
+        {
+            maintainhuman[dectindex][i].leaveframe++;
+            if(maintainhuman[dectindex][i].leaveframe > 3)
+            {
+                maintainhuman[dectindex].removeAt(i);
+            }
+        }
+        /*if(dectindex == 1)
+        {
+            if(maintainhuman[1][i].name == "")  //process one img per time
+            {
+                face_thd->SetParam(maintainhuman[1][i].img, maintainhuman[1][i].ID);
+            }
+        }*/
+    }
+    for(int i = 0; i < comcount; i++)
+    {
+        if(dc[i] == 0)
+        {
+            list[dectindex][i].ID = currentObjID[dectindex];
+            list[dectindex][i].leaveframe = 0;
+            maintainhuman[dectindex].append(list[dectindex][i]);
+            currentObjID[dectindex]++;
+        }
     }
 }
 void CHuamDectThd::MaintainObj_2()
@@ -382,7 +499,7 @@ void CHuamDectThd::MaintainObj_2()
                     f.close();
                 }*/
 
-                if(co < 0.40) //same
+                if(co < 0.4) //same
                 {
                     maintainhuman[dectindex][i].Hist = list[dectindex][j].Hist;
                     maintainhuman[dectindex][i].rect = list[dectindex][j].rect;
@@ -428,7 +545,7 @@ void CHuamDectThd::MaintainObj_2()
         {
             list[dectindex][i].ID = currentObjID[dectindex];
             list[dectindex][i].leaveframe = 0;
-            maintainhuman[dectindex].append(list[i]);
+            maintainhuman[dectindex].append(list[dectindex][i]);
             currentObjID[dectindex]++;
         }
     }
@@ -463,28 +580,37 @@ void CHuamDectThd::MaintainObj()
         {
             for(int i = 0; i < count; i++)
             {
-                double coo =  0;
-                int iddx = 0;
+                double coo =  1;
+                int iddx = -1;
                 for(int j = 0; j < list[dectindex].count(); j++)
                 {
-                    double co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_CORREL );
-                    if(co > coo)
+                    double co = 100;
+                    if(maintainhuman[dectindex][i].Hist.type() == list[dectindex][j].Hist.type())
+                    {
+                        co = compareHist( maintainhuman[dectindex][i].Hist, list[dectindex][j].Hist, CV_COMP_BHATTACHARYYA );
+                    }
+                    if(co < coo)
                     {
                         coo = co;
                         iddx = j;
                     }
                 }
-                maintainhuman[dectindex][i].Hist = list[dectindex][iddx].Hist;
-                maintainhuman[dectindex][i].rect = list[dectindex][iddx].rect;
-                maintainhuman[dectindex][i].img = list[dectindex][iddx].img;
-                maintainhuman[dectindex][i].leaveframe = 0;
-                list[dectindex].removeAt(iddx);
+                if(iddx != -1)
+                {
+                    maintainhuman[dectindex][i].Hist = list[dectindex][iddx].Hist;
+                    maintainhuman[dectindex][i].rect = list[dectindex][iddx].rect;
+                    maintainhuman[dectindex][i].img = list[dectindex][iddx].img;
+                    maintainhuman[dectindex][i].leaveframe = 0;
+                    list[dectindex].removeAt(iddx);
+                }
+
             }
-            for(int i = 0; i < list[dectindex].count(); i++)
+            for(int m = 0; m < list[dectindex].count(); m++)
             {
-                list[dectindex][i].ID = currentObjID[dectindex];
-                list[dectindex][i].leaveframe = 0;
-                maintainhuman[dectindex].append(list[i]);
+                list[dectindex][m].ID = currentObjID[dectindex];
+                list[dectindex][m].leaveframe = 0;
+                maintainhuman[dectindex].append(list[dectindex][m]);
+
                 currentObjID[dectindex]++;
             }
         }
@@ -497,25 +623,37 @@ void CHuamDectThd::MaintainObj()
             }
             for(int i = 0; i < comcount; i++)
             {
-                double coo =  0;
-                int iddx = 0;
+                double coo =  1;
+                int iddx = -1;
                 for(int j = 0; j < count; j++)
                 {
-                    double co = compareHist(list[dectindex][i].Hist, maintainhuman[dectindex][j].Hist, CV_COMP_CORREL );
-                    if(co > coo)
+                    double co = 100;
+                    if(maintainhuman[dectindex][j].Hist.type() == list[dectindex][i].Hist.type())
+                    {
+                        co = compareHist( maintainhuman[dectindex][j].Hist, list[dectindex][i].Hist, CV_COMP_BHATTACHARYYA );
+                    }
+                    if(co < coo)
                     {
                         coo = co;
                         iddx = j;
                     }
                 }
-                corr[iddx] = i;
+                if(iddx != -1)
+                {
+                    corr[iddx] = i;
+                }
+
             }
 
-            for(int i = 0; i < count; i++)
+            for(int i = count - 1; i >= 0; i--)
             {
                 if(corr[i] == -1)
                 {
                     maintainhuman[dectindex][i].leaveframe++;
+                    if(maintainhuman[dectindex][i].leaveframe > 3)
+                    {
+                        maintainhuman[dectindex].removeAt(i);
+                    }
                 }
                 else
                 {
@@ -523,27 +661,6 @@ void CHuamDectThd::MaintainObj()
                     maintainhuman[dectindex][i].rect = list[dectindex][corr[i]].rect;
                     maintainhuman[dectindex][i].img = list[dectindex][corr[i]].img;
                     maintainhuman[dectindex][i].leaveframe = 0;
-                }
-            }
-            QMutableListIterator<ObjdectRls> it(maintainhuman[dectindex]);
-            while (it.hasNext())
-            {
-                ObjdectRls rls = it.next();
-                if(rls.leaveframe > 4)
-                {
-                    //第二个摄像头中的人走掉之后，将其从人脸列表移除
-                    if(dectindex == 1)
-                    {
-                        for(int i = 0; i < facePerson.count(); i++)
-                        {
-                            if(facePerson[i].name == rls.name)
-                            {
-                                facePerson.removeAt(i);
-                                break;
-                            }
-                        }
-                    }
-                    it.remove();
                 }
             }
         }
@@ -556,6 +673,7 @@ void CHuamDectThd::MaintainObj()
             face_thd->SetParam(maintainhuman[1][i].img, maintainhuman[1][i].ID);
         }
     }
+    ProcessOPArea();
 }
 int CHuamDectThd::isCross(ObjdectRls rls1, ObjdectRls rls2)
 {
