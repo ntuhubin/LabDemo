@@ -10,6 +10,8 @@ typedef struct
     int CAMID;
     int ObjID;   //obj type
     int withHat;   //如果是人，是否戴帽 0 不戴 1戴
+    int withhatFrame;
+    int withoutHatFrame;
     int ID;     //the same obj has a same ID from 1, trackid
     QString name;  //person's name or workid
     int leaveframe;

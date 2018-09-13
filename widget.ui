@@ -140,6 +140,13 @@ font: 20pt &quot;Cantarell&quot;;</string>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
+          <widget class="QPushButton" name="btnup">
+           <property name="text">
+            <string>UP</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="LAB" name="lAB"/>
          </item>
          <item>
@@ -149,10 +156,17 @@ font: 20pt &quot;Cantarell&quot;;</string>
           <widget class="LAB" name="lAB_3"/>
          </item>
          <item>
+          <widget class="LAB" name="lAB_4"/>
+         </item>
+         <item>
           <widget class="LAB" name="lAB_5"/>
          </item>
          <item>
-          <widget class="LAB" name="lAB_4"/>
+          <widget class="QPushButton" name="btndown">
+           <property name="text">
+            <string>DOWN</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

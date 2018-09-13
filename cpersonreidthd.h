@@ -26,8 +26,8 @@ using namespace cv;
 class CPersonReIDThd:public QThread
 {
     Q_OBJECT
-public slots:
-    void ReidList(QList<ObjdectRls> rls[3]);
+public:
+    void ReidList(QList<ObjdectRls> rls[3], QList<QString> elst[2]);
 signals:
     void SendReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2);
     void sendreid(ObjdectRls rls1, ObjdectRls rls2);
@@ -40,14 +40,17 @@ private:
     string root_dir;
     std::unique_ptr<tensorflow::Session> session;
     QList<ObjdectRls> reidlist[3];
+    QList<QString> ExsitLst[2];
     volatile bool newcome;
     volatile bool stop_flag;
     QMutex mutex;
+    int saveidx0;
+    int saveidx2;
 public:
     CPersonReIDThd();
     void InitTF();
     float GetSocre(Mat img1, Mat img2);
-    void ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid);
+    void ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid, QList<QString> elst);
     ObjdectRls ComparePerson(QList<ObjdectRls> list, ObjdectRls rls);
     void StopRun();
 private:

@@ -18,6 +18,7 @@ CHuamDectThd::CHuamDectThd(int idx):QThread()
     personReid->start();
 
     db = new CDbPro();
+    curImg[0].load("test.jpg");
 
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
 }
@@ -79,6 +80,8 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
     if(facePerson.count() == 0)
     {
         facePerson.append(rls);
+        //QString filename = "/home/proj/lab/data/reid1/"+rls.name + ".jpg";
+        //rls.img.save(filename);
         mutex.unlock();
         return;
     }
@@ -87,7 +90,7 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
     {
         if(facePerson[i].name == rls.name)
         {
-            facePerson[i] = rls;
+            //facePerson[i] = rls;
             newcomer = false;
             break;
         }
@@ -95,6 +98,8 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
     if(newcomer == true)
     {
         facePerson.append(maintainhuman[1][index]);
+        //QString filename = "/home/proj/lab/data/reid1/"+maintainhuman[1][index].name + ".jpg";
+        //maintainhuman[1][index].img.save(filename);
     }
 }
 void CHuamDectThd::recvreid(ObjdectRls rls1, ObjdectRls rls2)
@@ -158,6 +163,7 @@ void CHuamDectThd::RecvReid(QList<ObjdectRls> list1, QList<ObjdectRls> list2)
 void CHuamDectThd::MultiPrepareReid()
 {
     QList<ObjdectRls> rls[3];
+    QList<QString> ExsitLst[2];
     if(facePerson.count() == 0)
     {
         return;
@@ -172,12 +178,20 @@ void CHuamDectThd::MultiPrepareReid()
         {
             rls[0].append(maintainhuman[0][m]);
         }
+        else
+        {
+            ExsitLst[0].append(maintainhuman[0][m].name);
+        }
     }
     for(int m = 0; m < maintainhuman[2].count(); m++)
     {
         if(maintainhuman[2][m].name == "")
         {
             rls[2].append(maintainhuman[2][m]);
+        }
+        else
+        {
+            ExsitLst[1].append(maintainhuman[2][m].name);
         }
     }
     if((rls[0].count() == 0) && (rls[2].count() == 0))
@@ -186,7 +200,7 @@ void CHuamDectThd::MultiPrepareReid()
     }
     else
     {
-        personReid->ReidList(rls);
+        personReid->ReidList(rls, ExsitLst);
     }
 }
 void CHuamDectThd::PrepareReid(ObjdectRls Objrls)
@@ -231,25 +245,26 @@ void CHuamDectThd::PrepareReid(ObjdectRls Objrls)
     }
     else
     {
-        personReid->ReidList(rls);
+        //personReid->ReidList(rls);
     }
 }
 int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
 {
     DetectedObjectGroup detected_object_group;
-    const float score_threshold = 0.6f;
+    const float score_threshold = 0.55f;
     const int max_num_detections = 6;
     string frozen_graph_path = "helmet_model_v3.pb.quantize";
+    //string frozen_graph_path = "helmet_model_v6_resnet101.pb.quantize";
     const DetectorType detector_type = HUMAN;
-    //Mat imgage = img.clone();
-    //Mat roi;
-    //roi=img(rc);
-    //Mat dectroi = roi.clone();
+
+    Mat roi;
+    roi=img(rc);
+    Mat dectroi = roi.clone();
     /*img = img(rc);
     string name = std::to_string(dectindex) + ".jpg";
     imwrite(name, img);
     img = imread(name);*/
-    if (!Detection(img, &detected_object_group, frozen_graph_path,
+    if (!Detection(dectroi, &detected_object_group, frozen_graph_path,
                        detector_type, score_threshold, max_num_detections)) {
         return -1;
     }
@@ -271,8 +286,8 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
         objrls.ObjID = detected_object.object_id;
         objrls.withHat = 0;
 
-        //objrls.rect = QRectF(detected_object.left + rc.x, detected_object.top + rc.y, detected_object.width,detected_object.height);
-        objrls.rect = QRectF(detected_object.left, detected_object.top, detected_object.width,detected_object.height);
+        objrls.rect = QRectF(detected_object.left + rc.x, detected_object.top + rc.y, detected_object.width,detected_object.height);
+        //objrls.rect = QRectF(detected_object.left, detected_object.top, detected_object.width,detected_object.height);
         objrls.img = qimg.copy(objrls.rect.toRect());
         if(objrls.ObjID == 1) //human
         {
@@ -298,6 +313,8 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
             objrls.OPFrame = 0;
             objrls.leaveframe = 0;
             objrls.LeaOPFrame = 0;
+            objrls.withhatFrame = 0;
+            objrls.withoutHatFrame = 0;
             list[dectindex].append(objrls);
         }
         else if(objrls.ObjID == 3)  //an quan mao
@@ -337,7 +354,7 @@ void CHuamDectThd::run()
                 }
             }
 
-            //ProcessOPArea();
+            ProcessOPArea();
 
             MultiPrepareReid();
 
@@ -355,7 +372,7 @@ void CHuamDectThd::run()
         {
             break;
         }
-        msleep(30);
+        msleep(50);
     }
 }
 void CHuamDectThd::MaintainObj_3()
@@ -368,6 +385,17 @@ void CHuamDectThd::MaintainObj_3()
         {
             list[dectindex][i].ID = currentObjID[dectindex];
             list[dectindex][i].leaveframe = 0;
+            if(list[dectindex][i].withHat == 0)
+            {
+                list[dectindex][i].withhatFrame = 0;
+                list[dectindex][i].withoutHatFrame = 1;
+            }
+            else
+            {
+                list[dectindex][i].withhatFrame = 1;
+                list[dectindex][i].withoutHatFrame = 0;
+            }
+            list[dectindex][i].withHat = 1;
             maintainhuman[dectindex].append(list[dectindex][i]);
             currentObjID[dectindex]++;
         }
@@ -378,7 +406,7 @@ void CHuamDectThd::MaintainObj_3()
         for(int i = count - 1; i >= 0; i--)
         {
             maintainhuman[dectindex][i].leaveframe++;
-            if(maintainhuman[dectindex][i].leaveframe > 3)
+            if(maintainhuman[dectindex][i].leaveframe > 0)
             {
                 maintainhuman[dectindex].removeAt(i);
             }
@@ -431,6 +459,30 @@ void CHuamDectThd::MaintainObj_3()
         maintainhuman[dectindex][it->cm].Hist = list[dectindex][it->cd].Hist;
         maintainhuman[dectindex][it->cm].rect = list[dectindex][it->cd].rect;
         maintainhuman[dectindex][it->cm].img = list[dectindex][it->cd].img;
+        maintainhuman[dectindex][it->cm].withHat = 1;
+        if(list[dectindex][it->cd].withHat == 0)
+        {
+            //list[dectindex][it->cd].withhatFrame = 0;
+            maintainhuman[dectindex][it->cm].withoutHatFrame++;
+            if(maintainhuman[dectindex][it->cm].withoutHatFrame > 5)
+            {
+                //list[dectindex][it->cd].withHat = 0;
+                maintainhuman[dectindex][it->cm].withhatFrame = 0;
+                maintainhuman[dectindex][it->cm].withHat = 0;
+            }
+        }
+        else
+        {
+            maintainhuman[dectindex][it->cm].withhatFrame++;
+            if(maintainhuman[dectindex][it->cm].withhatFrame > 5)
+            {
+                //list[dectindex][it->cd].withHat = 1;
+                maintainhuman[dectindex][it->cm].withoutHatFrame = 0;
+            }
+            //list[dectindex][it->cd].withoutHatFrame = 0;
+        }
+
+        //maintainhuman[dectindex][it->cm].withHat = list[dectindex][it->cd].withHat;
         maintainhuman[dectindex][it->cm].leaveframe = 0;
         mc[it->cm] = 1;
         dc[it->cd] = 1;
@@ -440,7 +492,7 @@ void CHuamDectThd::MaintainObj_3()
         if(mc[i] == 0)
         {
             maintainhuman[dectindex][i].leaveframe++;
-            if(maintainhuman[dectindex][i].leaveframe > 3)
+            if(maintainhuman[dectindex][i].leaveframe > 0)
             {
                 maintainhuman[dectindex].removeAt(i);
             }
@@ -459,6 +511,17 @@ void CHuamDectThd::MaintainObj_3()
         {
             list[dectindex][i].ID = currentObjID[dectindex];
             list[dectindex][i].leaveframe = 0;
+            if(list[dectindex][i].withHat == 0)
+            {
+                list[dectindex][i].withhatFrame = 0;
+                list[dectindex][i].withoutHatFrame = 1;
+            }
+            else
+            {
+                list[dectindex][i].withhatFrame = 1;
+                list[dectindex][i].withoutHatFrame = 0;
+            }
+            list[dectindex][i].withHat = 1;
             maintainhuman[dectindex].append(list[dectindex][i]);
             currentObjID[dectindex]++;
         }
@@ -650,7 +713,7 @@ void CHuamDectThd::MaintainObj()
                 if(corr[i] == -1)
                 {
                     maintainhuman[dectindex][i].leaveframe++;
-                    if(maintainhuman[dectindex][i].leaveframe > 3)
+                    if(maintainhuman[dectindex][i].leaveframe > 2)
                     {
                         maintainhuman[dectindex].removeAt(i);
                     }
@@ -716,13 +779,13 @@ bool CHuamDectThd::isINOpArea(int x, int y)
     }
     if(ret == true)
         return ret;
-    rectA[0].x = 1139;
-    rectA[0].y = 628;
-    rectA[1].x = 1273;
-    rectA[1].y = 690;
-    rectA[2].x = 1000;
+    rectA[0].x = 1100;
+    rectA[0].y = 560;
+    rectA[1].x = 1300;
+    rectA[1].y = 640;
+    rectA[2].x = 950;
     rectA[2].y = 950;
-    rectA[3].x = 760;
+    rectA[3].x = 600;
     rectA[3].y = 880;
     for(int i = 3; i >=1; i--)
     {
@@ -774,7 +837,7 @@ void CHuamDectThd::ProcessOPArea()
         {
             maintainhuman[0][i].OPFrame++;
             maintainhuman[0][i].LeaOPFrame = 0;
-            if(maintainhuman[0][i].OPFrame > 50)
+            if(maintainhuman[0][i].OPFrame > 20)
             {
                 if(isINOPLst(maintainhuman[0][i].name.toStdString()) == false)
                 {

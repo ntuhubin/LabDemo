@@ -39,14 +39,19 @@ private:
     CPersonReIDThd *reid_thd;
     QList<ObjdectRls> objdects[3];
     QList<ObjdectRls> showobjs;   //右侧栏显示, max 5
+    QList<ObjdectRls> showlst[3];
     int currentObjID[3];   //三个目标检测  当前可用的ID
     QMutex mutex;
     CFaceClsThread *face_thd;
     QPolygon m1pts;
     QPolygon m2pts;
     QList<QString> oplist;
+    int showindex;
+    int lastshowcount;
 private:
     void DealShowObjs(ObjdectRls rls);
+    int IsInList(QString name);
+    void DealShowobjs(QList<ObjdectRls> list, int index);
     bool IsOperator(QString name);
 private slots:
     void frmMenu();
@@ -54,6 +59,8 @@ private slots:
     void sysStart();
     void sysRegister();
     void sysQuery();
+    void upShow();
+    void downShow();
 };
 
 #endif // WIDGET_H

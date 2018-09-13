@@ -54,7 +54,7 @@ void CFaceClsThread::run()
         }*/
         if (ImgQue.count() == 0)
         {
-            msleep(200);
+            msleep(50);
             continue;
         }
 
@@ -65,13 +65,16 @@ void CFaceClsThread::run()
         mutex.unlock();
         if(img.isNull() == true)
         {
-            msleep(200);
+            msleep(50);
             continue;
         }
+
         if(stopflag == true)
         {
             break;
         }
+        //QString fn = "/home/proj/lab/data/face/" + QDateTime::currentDateTime().toString("MM-dd hh:mm:ss") + ".jpg";
+        //img.save(fn);
 
         if(first != 0)
         {
@@ -92,7 +95,7 @@ void CFaceClsThread::run()
         //qDebug() << personnum;
         if(personnum == 0)
         {
-            msleep(200);
+            msleep(50);
             continue;
         }
         for(int i = 0; i < personnum; i++)
@@ -118,7 +121,7 @@ void CFaceClsThread::run()
 
         emit sendcls(list);
         //isGet = false;
-        msleep(200);
+        msleep(50);
     }
 }
 /*int CFaceClsThread::UpdateCapList(ClsInfo clsinfo,  QImage dimg)

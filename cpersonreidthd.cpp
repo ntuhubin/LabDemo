@@ -5,10 +5,12 @@ CPersonReIDThd::CPersonReIDThd():QThread()
     InitTF();
     stop_flag = false;
     newcome = false;
+    saveidx0=0;
+    saveidx2=0;
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
     //qRegisterMetaType<ObjdectRls> ("ObjdectRls");
 }
-void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3])
+void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3], QList<QString> elst[2])
 {
     mutex.lock();
     for(int i = 0; i < 3; i++)
@@ -19,17 +21,26 @@ void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3])
             reidlist[i].append(rls[i].at(j));
         }
     }
+    for(int i =0; i < 2; i++)
+    {
+        ExsitLst[i].clear();
+        for(int j = 0; j < elst[i].count(); j++)
+        {
+            ExsitLst[i].append(elst[i].at(j));
+        }
+    }
     newcome = true;
     mutex.unlock();
 
 }
-void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid)
+void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cplist, int camid, QList<QString> elst)
 {
     QList<ObjdectRls> tmp;
     int count = cplist.count();
     for(int i = 0; i< count; i++)
     {
-        tmp.append(cplist.at(i));
+        if(! elst.contains(cplist[i].name))
+            tmp.append(cplist.at(i));
     }
     float score = -1000;
     int index = -1;
@@ -47,7 +58,19 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cp
                 index = j;
             }
         }
-        if(camid == 3)
+        /*if(camid == 1)
+        {
+            QString savepath = "/home/proj/lab/data/reid0/" + QString::number(saveidx0,10)+".jpg";
+            list[i].img.save(savepath);
+            saveidx0++;
+        }
+        else if(camid == 3)
+        {
+            QString savepath = "/home/proj/lab/data/reid2/" + QString::number(saveidx2,10)+".jpg";
+            list[i].img.save(savepath);
+            saveidx2++;
+        }*/
+        /*if(camid == 3)
         {
             QFile f("reid.txt");
             if(f.open(QIODevice::Append | QIODevice::Text))
@@ -56,8 +79,8 @@ void CPersonReIDThd::ComparePerson(QList<ObjdectRls> &list, QList<ObjdectRls> cp
                 txtOutput << score << endl;
                 f.close();
             }
-        }
-        if(score > 0.9)  //match
+        }*/
+        if(score > 0.7)  //match
         {
             list[i].name = tmp[index].name;
             tmp.removeAt(index);
@@ -125,6 +148,7 @@ void CPersonReIDThd::InitTF()
 }
 float CPersonReIDThd::GetSocre(Mat img1, Mat img2)
 {
+
     img1.convertTo(img1, CV_32FC1);
     resize(img1, img1, cv::Size(input_width,input_height), 0, 0, CV_INTER_CUBIC);
     //cvtColor(img1, img1, COLOR_BGR2RGB);
@@ -186,12 +210,20 @@ void CPersonReIDThd::run()
                 rlist[i].append(reidlist[i].at(j));
             }
         }
+        QList<QString> elst[2];
+        for(int i = 0; i < 2; i++)
+        {
+            for(int j = 0; j < ExsitLst[i].count(); j++)
+            {
+                elst[i].append(ExsitLst[i].at(j));
+            }
+        }
         newcome = false;
         mutex.unlock();
         //ObjdectRls rls1 = ComparePerson(rlist[0], rlist[1][0]);
         //ObjdectRls rls2 = ComparePerson(rlist[2], rlist[1][0]);
-        ComparePerson(rlist[0], rlist[1], 1);
-        ComparePerson(rlist[2], rlist[1], 3);
+        ComparePerson(rlist[0], rlist[1], 1, elst[0]);
+        ComparePerson(rlist[2], rlist[1], 3, elst[1]);
         emit SendReid(rlist[0], rlist[2]);
 
         msleep(100);

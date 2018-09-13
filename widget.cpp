@@ -20,6 +20,8 @@ Widget::Widget(QWidget *parent) :
     ui->label_LOGO->setPixmap(fitpixmap);
 
     connect(ui->pushButtonmMenu, &QPushButton::clicked, this, &Widget::frmMenu);
+    connect(ui->btnup,&QPushButton::clicked,this,&Widget::upShow);
+    connect(ui->btndown,&QPushButton::clicked,this,&Widget::downShow);
     for(int i = 0; i < 3; i++)
     {
         currentObjID[i] = 1;
@@ -43,9 +45,17 @@ Widget::Widget(QWidget *parent) :
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();*/
     m1pts.setPoints(4, 1374,427, 1550,471,1329,630,1157,555);
-    m2pts.setPoints(4, 1139,628, 1273,690,1000,950,760,880);
+    m2pts.setPoints(4, 1100,560, 1300,640,950,950,600,880);
     //m1pts.setPoints(4, 1140,410, 1500,410,1500,650,1140,650);
     //m2pts.setPoints(4, 850,600, 1300,600,1300,1000,850,1000);
+
+    showindex = 0;
+    lastshowcount = 0;
+    /*QString filename = "/home/proj/lab/GUIelements/Background.jpg";
+    QPixmap pixmap(filename);
+    QPalette pal;
+    pal.setBrush(QPalette::Window,QBrush(pixmap));
+    setPalette(pal);*/
 }
 
 Widget::~Widget()
@@ -80,43 +90,54 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
             rls.append(objdects[idx - 1].at(i));
         }*/
 
-        if(count != 0 || idx == 1)
+
+        QPainter painter(&img);
+
+        QFont font;
+        font.setPointSize(35);
+        painter.setFont(font);
+        for(int i = 0; i < count; i++)
         {
-            QPainter painter(&img);
             painter.setPen(QPen(Qt::blue, 4, Qt::DashLine));
-            QFont font;
-            font.setPointSize(35);
-            painter.setFont(font);
-            for(int i = 0; i < count; i++)
-            {             
-                if(rls.at(i).withHat == 0)
-                {
-                    QString str = "NO HAT";
-                    painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() - 25,str);
-                }
-                painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 25, QString::number(rls[i].ID, 10));
-                painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
-                if(idx == 1)
-                {
-                    if(rls.at(i).OPFrame >= 50 && IsOperator(rls.at(i).name) == false)
-                    {
-                       painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
-                       painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "op machine");
-                    }
-                    else
-                    {
-                        painter.setPen(QPen(Qt::blue, 4, Qt::DashLine));
-                    }
-                }
-                painter.drawRect(rls.at(i).rect);
+            if(rls.at(i).withHat == 0)
+            {
+                QString str = "NO HAT";
+                painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() - 25,str);
             }
+            painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 25, QString::number(rls[i].ID, 10));
+            painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
             if(idx == 1)
             {
-                painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
-                painter.drawConvexPolygon(m1pts);
-                painter.drawConvexPolygon(m2pts);
-            }
+                if(rls.at(i).OPFrame >= 20  )
+                {
+                   if(IsOperator(rls.at(i).name) == false)
+                   {
+                       painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
+                       painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "违规操作");
+                   }
+                   else
+                   {
+                       painter.setPen(QPen(Qt::green, 4, Qt::DashLine));
+                       painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 125, "操作CNC");
+                   }
 
+
+                }
+             }
+            if(idx == 2)
+            {
+                if(rls[i].name == "")
+                {
+                    painter.setPen(QPen(Qt::yellow, 4, Qt::DashLine));
+                }
+            }
+            painter.drawRect(rls.at(i).rect);
+        }
+        if(idx == 1)
+        {
+            painter.setPen(QPen(Qt::red, 4, Qt::DashLine));
+            painter.drawConvexPolygon(m1pts);
+            painter.drawConvexPolygon(m2pts);
         }
         /*if(idx == 1)
             img.save("/tmp/0.jpg");
@@ -124,10 +145,8 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
             img.save("/tmp/1.jpg");
         if(idx == 3)
             img.save("/tmp/2.jpg");*/
+       mutex.unlock();
     }
-    mutex.unlock();
-
-
     QLabel *cam[4] = {ui->label_CameraA, ui->label_CameraB, ui->label_CameraC, ui->label_CameraD};
     int w = ui->label_CameraA->width();
     int h = ui->label_CameraA->height();
@@ -140,10 +159,12 @@ void Widget::DealShowObjs(ObjdectRls rls)
 {
     int count = showobjs.count();
     rls.captime = QDateTime::currentDateTime();
+
     for(int i = count - 1; i >=0; i--)
     {
         if((rls.CAMID == showobjs[i].CAMID) && (rls.ID == showobjs[i].ID))
         {
+            rls.img = showobjs[i].img;
             showobjs.removeAt(i);
             break;
         }
@@ -166,9 +187,23 @@ void Widget::DealShowObjs(ObjdectRls rls)
             msg.status = "未戴安全帽";
             msg.warning = true;
         }
-        if(showobjs[i].OPFrame >= 45)
+        if(showobjs[i].OPFrame >= 20)
         {
-            msg.status = "操作仪器";
+            if(IsOperator(showobjs[i].name) == false)
+            {
+                msg.warning = true;
+                msg.status = "违规操作";
+            }
+            else
+            {
+                msg.status = "操作CNC";
+                msg.warning = false;
+            }
+
+        }
+        if(showobjs[i].CAMID == 1)
+        {
+            msg.status = "进入车间";
         }
         msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
         msg.img = showobjs[i].img;
@@ -183,6 +218,188 @@ void Widget::DealShowObjs(ObjdectRls rls)
     ui->lAB->SetMsg(msg);*/
 
 }
+void Widget::DealShowobjs(QList<ObjdectRls> list, int index)
+{
+    int count = showlst[index].count();
+    int comecount = list.count();
+    if(comecount == 0)
+    {
+        showlst[index].clear();
+        return;
+    }
+    if(count == 0)
+    {
+        for(int i = 0; i < comecount; i++)
+        {
+            if(list[i].name != "")
+            {
+                showlst[index].append(list[i]);
+            }
+        }
+        return;
+    }
+
+    int rmv[count];
+    for(int i = 0; i <count ;i++)
+    {
+        rmv[i] = 0;
+    }
+    QList<ObjdectRls> addlst;
+    for(int i = 0; i < comecount; i++)
+    {
+        if(list[i].name != "")
+        {
+            bool newc = true;
+            for(int j = 0; j < count; j++)
+            {
+                if(list[i].name == showlst[index][j].name)
+                {
+                    if(showlst[index][j].withHat != list[i].withHat)
+                    {
+                        showlst[index][j].img = list[i].img;
+                        showlst[index][j].withHat = list[i].withHat;
+                    }
+                    if(showlst[index][j].OPFrame <= 19)
+                    {
+                        if(list[i].OPFrame >= 20)
+                        {
+                            showlst[index][j].img = list[i].img;
+                        }
+                    }
+                    showlst[index][j].OPFrame = list[i].OPFrame;
+                    newc = false;
+                    rmv[j] = 1;
+                    break;
+                }
+            }
+            if(newc == true)
+            {
+                addlst.append(list[i]);
+            }
+        }
+    }
+    for(int j = showlst[index].count() - 1; j >=0; j--)
+    {
+        if(rmv[j] == 0)
+        {
+            showlst[index].removeAt(j);
+        }
+    }
+    showlst[index].append(addlst);
+
+    if(index == 1)
+    {
+        for(int i = 0; i < showlst[index].count(); i++)
+        {
+            int ret = IsInList(showlst[index][i].name);
+            if(ret == -1)
+            {
+                showobjs.push_front(showlst[index][i]);
+            }
+            else
+            {
+                showobjs[ret] = showlst[index][i];
+            }
+        }
+    }
+    else if(index == 0)
+    {
+        for(int i = 0; i < showlst[index].count(); i++)
+        {
+            if(showlst[index][i].OPFrame >= 20)
+            {
+                int ret = IsInList(showlst[index][i].name);
+                if(ret == -1)
+                {
+                    showobjs.push_front(showlst[index][i]);
+                }
+                else
+                {
+                    if(showobjs[ret].CAMID != 0)
+                    {
+                        showobjs.push_front(showlst[index][i]);
+                    }
+                    else
+                    {
+                        showobjs[ret] = showlst[index][i];
+                    }
+                }
+            }
+        }
+    }
+
+
+    LAB *plab[5] = {ui->lAB, ui->lAB_2, ui->lAB_3, ui->lAB_4, ui->lAB_5};
+    /*showobjs.clear();
+    showobjs.append(showlst[0]);
+    for(int i = 0; i < showlst[1].count(); i++)
+    {
+        if(IsInList(showlst[1][i].name) == false)
+        {
+            showobjs.append(showlst[1][i]);
+        }
+    }
+    for(int i = 0; i < showlst[2].count(); i++)
+    {
+        if(IsInList(showlst[2][i].name) == false)
+        {
+            showobjs.append(showlst[2][i]);
+        }
+    }*/
+    count = showobjs.count();
+    if(lastshowcount == count)
+        return;
+    lastshowcount = count;
+    //if(showobjs.count() > 5)
+        //showobjs.removeFirst();
+    int ma = min(count, 5);
+    showindex = 0;
+    for(int i = 0; i < ma; i++)
+    {
+        showmsg msg;
+        msg.camid = "工位:" + QString::number(showobjs[i].CAMID);
+        msg.warning = false;
+        if(showobjs[i].withHat == 0)
+        {
+            msg.status = "未戴安全帽";
+            msg.warning = true;
+        }
+        if(showobjs[i].OPFrame >= 20)
+        {
+            if(IsOperator(showobjs[i].name) == false)
+            {
+                msg.warning = true;
+                msg.status = "违规操作";
+            }
+            else
+            {
+                msg.status = "操作CNC";
+                msg.warning = false;
+            }
+
+        }
+        if(showobjs[i].CAMID == 1)
+        {
+            msg.status = "进入车间";
+        }
+        msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
+        msg.img = showobjs[i].img;
+        msg.id = showobjs[i].name;
+        plab[i]->SetMsg(msg);
+    }
+
+}
+int Widget::IsInList(QString name)
+{
+    for(int i = 0; i < showobjs.count(); i++)
+    {
+        if(showobjs[i].name == name)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
 void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
 {
     if(idx < 0 || idx > 3)
@@ -193,9 +410,11 @@ void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
     objdects[idx].clear();
     for(int i = 0; i < count; i++)
     {
+        list[i].captime = QDateTime::currentDateTime();
         objdects[idx].append(list[i]);
-        DealShowObjs(list[i]);
+        //DealShowObjs(list[i]);
     }
+    DealShowobjs(list,idx);
     mutex.unlock();
     //int count = objdects[idx].count();
     /*int comcount = list.count();
@@ -350,15 +569,6 @@ void Widget::sysStart()
          //play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
          //play_thd[i]->start();
     }
-    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/4.mp4", 1);
-    play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/1.mp4", 2);
-    play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/3.mp4", 3);
-    play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180904/2.mp4", 4);
-    play_thd[0]->start();
-    play_thd[1]->start();
-    play_thd[2]->start();
-    play_thd[3]->start();
-
 
     human_thd = new CHuamDectThd(0);
     for(int i = 0; i < 3; i++)
@@ -369,6 +579,18 @@ void Widget::sysStart()
     }
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();
+
+    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch01_20180905162901.mp4", 1);
+    play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch02_20180905162901.mp4", 2);
+    play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch03_20180905162901.mp4", 3);
+    play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch04_20180905162901.mp4", 4);
+    play_thd[0]->start();
+    play_thd[1]->start();
+    play_thd[2]->start();
+    play_thd[3]->start();
+
+
+
     //face_thd = new CFaceClsThread();
     //connect(play_thd[1], &PlayLocalM4::message, face_thd, &CFaceClsThread::recvImg);
     //face_thd->start();
@@ -382,4 +604,86 @@ void Widget::sysQuery()
 {
     QueryDlg *querydlg = new QueryDlg();
     querydlg->show();
+}
+void Widget::upShow()
+{
+    int count = showobjs.count();
+    if(showindex + 5 >= count)
+        return;
+    LAB *plab[5] = {ui->lAB, ui->lAB_2, ui->lAB_3, ui->lAB_4, ui->lAB_5};
+    showindex++;
+    for(int i = showindex; i < showindex + 5; i++)
+    {
+        showmsg msg;
+        msg.camid = "工位:" + QString::number(showobjs[i].CAMID);
+        msg.warning = false;
+        if(showobjs[i].withHat == 0)
+        {
+            msg.status = "未戴安全帽";
+            msg.warning = true;
+        }
+        if(showobjs[i].OPFrame >= 20)
+        {
+            if(IsOperator(showobjs[i].name) == false)
+            {
+                msg.warning = true;
+                msg.status = "违规操作";
+            }
+            else
+            {
+                msg.status = "操作CNC";
+                msg.warning = false;
+            }
+
+        }
+        if(showobjs[i].CAMID == 1)
+        {
+            msg.status = "进入车间";
+        }
+        msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
+        msg.img = showobjs[i].img;
+        msg.id = showobjs[i].name;
+        plab[i - showindex]->SetMsg(msg);
+    }
+
+}
+void Widget::downShow()
+{
+    if(showindex == 0)
+        return;
+    LAB *plab[5] = {ui->lAB, ui->lAB_2, ui->lAB_3, ui->lAB_4, ui->lAB_5};
+    showindex--;
+    for(int i = showindex; i < showindex + 5; i++)
+    {
+        showmsg msg;
+        msg.camid = "工位:" + QString::number(showobjs[i].CAMID);
+        msg.warning = false;
+        if(showobjs[i].withHat == 0)
+        {
+            msg.status = "未戴安全帽";
+            msg.warning = true;
+        }
+        if(showobjs[i].OPFrame >= 20)
+        {
+            if(IsOperator(showobjs[i].name) == false)
+            {
+                msg.warning = true;
+                msg.status = "违规操作";
+            }
+            else
+            {
+                msg.status = "操作CNC";
+                msg.warning = false;
+            }
+
+        }
+        if(showobjs[i].CAMID == 1)
+        {
+            msg.status = "进入车间";
+        }
+        msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
+        msg.img = showobjs[i].img;
+        msg.id = showobjs[i].name;
+        plab[i - showindex]->SetMsg(msg);
+    }
 }
