@@ -16,18 +16,12 @@ void CPersonReIDThd::ReidList(QList<ObjdectRls> rls[3], QList<QString> elst[2])
     for(int i = 0; i < 3; i++)
     {
         reidlist[i].clear();
-        for(int j = 0; j < rls[i].count(); j++)
-        {
-            reidlist[i].append(rls[i].at(j));
-        }
+        reidlist[i].append(rls[i]);
     }
     for(int i =0; i < 2; i++)
     {
         ExsitLst[i].clear();
-        for(int j = 0; j < elst[i].count(); j++)
-        {
-            ExsitLst[i].append(elst[i].at(j));
-        }
+        ExsitLst[i].append(elst[i]);
     }
     newcome = true;
     mutex.unlock();
@@ -205,18 +199,12 @@ void CPersonReIDThd::run()
         QList<ObjdectRls> rlist[3];
         for(int i = 0; i < 3; i++)
         {
-            for(int j = 0; j < reidlist[i].count(); j++)
-            {
-                rlist[i].append(reidlist[i].at(j));
-            }
+            rlist[i].append(reidlist[i]);
         }
         QList<QString> elst[2];
         for(int i = 0; i < 2; i++)
         {
-            for(int j = 0; j < ExsitLst[i].count(); j++)
-            {
-                elst[i].append(ExsitLst[i].at(j));
-            }
+            elst[i].append(ExsitLst[i]);
         }
         newcome = false;
         mutex.unlock();

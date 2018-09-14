@@ -8,16 +8,34 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->label_title->setText("数字车间智能监控管理平台");
+    //ui->label_title->setText("数字车间智能监控管理平台");
+    ui->label_title->setText("                       ");
     ui->label_gap->setText("                                                   ");
-    ui->pushButtonmMenu->setText("Menu");
+    //ui->pushButtonmMenu->setText("Menu");
     int w = ui->label_LOGO->width() * 1.5;
     int h = ui->label_LOGO->height();
-    QPixmap mp;
-    mp.load("./LOGO.png");
-    QPixmap fitpixmap = mp.scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);  // 饱满填充
-    //ui->label_CameraA->setPixmap(fitpixmap);
-    ui->label_LOGO->setPixmap(fitpixmap);
+
+
+    //QPixmap icon1(tr("/home/proj/lab/GUI0913/menu.png"));
+    ui->pushButtonmMenu->setIcon((QPixmap("/home/proj/lab/GUI0913/menu.png")));
+    ui->pushButtonmMenu->setIconSize(QSize(80, 30));
+    //ui->pushButtonmMenu->setFixedSize(icon1.size());
+
+    ui->btnup->setText("");
+    QPixmap icon2(tr("/home/proj/lab/GUI0913/ArrowUp.png"));
+    ui->btnup->setIcon(icon2);
+    ui->btnup->setIconSize(icon2.rect().size());
+
+    ui->btndown->setText("");
+    QPixmap icon3(tr("/home/proj/lab/GUI0913/ArrowDown.png"));
+    ui->btndown->setIcon(icon3);
+    ui->btndown->setIconSize(icon3.rect().size());
+
+    //QPixmap mp;
+    //mp.load("./LOGO.png");
+    //QPixmap fitpixmap = mp.scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);  // 饱满填充
+    //ui->label_LOGO->setPixmap(fitpixmap);
+    ui->label_LOGO->setText("");
 
     connect(ui->pushButtonmMenu, &QPushButton::clicked, this, &Widget::frmMenu);
     connect(ui->btnup,&QPushButton::clicked,this,&Widget::upShow);
@@ -51,11 +69,11 @@ Widget::Widget(QWidget *parent) :
 
     showindex = 0;
     lastshowcount = 0;
-    /*QString filename = "/home/proj/lab/GUIelements/Background.jpg";
+    QString filename = "/home/proj/lab/GUI0914/bg.jpg";
     QPixmap pixmap(filename);
     QPalette pal;
     pal.setBrush(QPalette::Window,QBrush(pixmap));
-    setPalette(pal);*/
+    setPalette(pal);
 }
 
 Widget::~Widget()
@@ -561,7 +579,7 @@ void Widget::sysSetup()
 void Widget::sysStart()
 {
     ui->pushButtonmMenu->setEnabled(false);
-    ui->pushButtonmMenu->setVisible(false);
+    //ui->pushButtonmMenu->setVisible(false);
     for(int i = 0; i < 4; i++)
     {
          play_thd[i] = new PlayLocalM4();
@@ -584,6 +602,10 @@ void Widget::sysStart()
     play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch02_20180905162901.mp4", 2);
     play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch03_20180905162901.mp4", 3);
     play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch04_20180905162901.mp4", 4);
+    //play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180910/ch01_20180910152525.mp4", 1);
+    //play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180910/ch02_20180910152525.mp4", 2);
+    //play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180910/ch03_20180910152524.mp4", 3);
+    //play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180910/ch04_20180910152524.mp4", 4);
     play_thd[0]->start();
     play_thd[1]->start();
     play_thd[2]->start();

@@ -75,12 +75,18 @@ font: 20pt &quot;Cantarell&quot;;</string>
          <property name="text">
           <string/>
          </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,1">
+       <property name="spacing">
+        <number>6</number>
+       </property>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
@@ -144,6 +150,9 @@ font: 20pt &quot;Cantarell&quot;;</string>
            <property name="text">
             <string>UP</string>
            </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -165,6 +174,9 @@ font: 20pt &quot;Cantarell&quot;;</string>
           <widget class="QPushButton" name="btndown">
            <property name="text">
             <string>DOWN</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

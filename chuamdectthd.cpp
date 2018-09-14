@@ -464,7 +464,7 @@ void CHuamDectThd::MaintainObj_3()
         {
             //list[dectindex][it->cd].withhatFrame = 0;
             maintainhuman[dectindex][it->cm].withoutHatFrame++;
-            if(maintainhuman[dectindex][it->cm].withoutHatFrame > 5)
+            if(maintainhuman[dectindex][it->cm].withoutHatFrame > 1)
             {
                 //list[dectindex][it->cd].withHat = 0;
                 maintainhuman[dectindex][it->cm].withhatFrame = 0;
@@ -474,7 +474,7 @@ void CHuamDectThd::MaintainObj_3()
         else
         {
             maintainhuman[dectindex][it->cm].withhatFrame++;
-            if(maintainhuman[dectindex][it->cm].withhatFrame > 5)
+            if(maintainhuman[dectindex][it->cm].withhatFrame > 1)
             {
                 //list[dectindex][it->cd].withHat = 1;
                 maintainhuman[dectindex][it->cm].withoutHatFrame = 0;
