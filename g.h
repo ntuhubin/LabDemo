@@ -21,6 +21,7 @@ typedef struct
     int LeaOPFrame;  //离开操作区的帧数，超过一定帧则将OPFrame清0
     QDateTime captime;
     cv::MatND Hist;   //hist of human, used for match
+    int HatColor;
 }ObjdectRls;
 typedef struct
 {
@@ -80,5 +81,11 @@ typedef struct
     int camid;    // 1-3
     QImage dectimg;
 }EventInfo, *pEventInfo;
+
+typedef struct
+{
+    int objID;
+    int frames;
+}TraceInfo, *pTraceInfo;
 
 #endif // G_H

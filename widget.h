@@ -48,11 +48,13 @@ private:
     QList<QString> oplist;
     int showindex;
     int lastshowcount;
+    QString hatColor[11];
 private:
     void DealShowObjs(ObjdectRls rls);
     int IsInList(QString name);
     void DealShowobjs(QList<ObjdectRls> list, int index);
     bool IsOperator(QString name);
+    int D2H(int d);
 private slots:
     void frmMenu();
     void sysSetup();
@@ -61,6 +63,14 @@ private slots:
     void sysQuery();
     void upShow();
     void downShow();
+private:
+    QList<TraceInfo> tracelst;
+    int curtraceid;
+    int currentframes;
+    void DealTraceLst(ObjdectRls rls);
+    int GetCurrentTraceObj(QList<ObjdectRls> list);
+    void GotoMachine();
+    bool Machine_Violation;
 };
 
 #endif // WIDGET_H

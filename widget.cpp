@@ -69,24 +69,37 @@ Widget::Widget(QWidget *parent) :
 
     showindex = 0;
     lastshowcount = 0;
-    QString filename = "/home/proj/lab/GUI0914/bg.jpg";
+    QString filename = "/home/proj/lab/GUI0918/Background.jpg";
     QPixmap pixmap(filename);
     QPalette pal;
     pal.setBrush(QPalette::Window,QBrush(pixmap));
     setPalette(pal);
+
+    hatColor[0] = "黑色";
+    hatColor[1] = "蓝色";
+    hatColor[2] = "棕色";
+    hatColor[3] = "灰色";
+    hatColor[4] = "绿色";
+    hatColor[5] = "橘色";
+    hatColor[6] = "粉红色";
+    hatColor[7] = "紫色";
+    hatColor[8] = "红色";
+    hatColor[9] = "白色";
+    hatColor[10] = "黄色";
+    curtraceid = -1;
+    currentframes = 0;
+    Machine_Violation = false;
 }
 
 Widget::~Widget()
 {
-    /*for(int i = 0; i < 3; i++)
-    {
-        human_thd[i]->StopRun();
-    }*/
+
+    //play_thd[3]->cam->AutoPan(1);
     human_thd->StopRun();
     for(int i = 0; i < 4; i++)
     {
-        //play_thd[i]->stopRealPlay();
-        play_thd[i]->stopLocalplay();
+        play_thd[i]->stopRealPlay();
+        //play_thd[i]->stopLocalplay();
     }
     delete ui;
 }
@@ -121,6 +134,14 @@ void Widget::recvImg(QImage img, int idx)  //摄像头返回图像，编号从1�
             {
                 QString str = "NO HAT";
                 painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() - 25,str);
+            }
+            else
+            {
+                int coloridx = rls[i].HatColor;
+                if(coloridx != -1)
+                {
+                    painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() - 25, hatColor[coloridx]);
+                }
             }
             painter.drawText(rls.at(i).rect.x() + 25,rls.at(i).rect.y() + 25, QString::number(rls[i].ID, 10));
             painter.drawText(rls.at(i).rect.x() + 105,rls.at(i).rect.y() + 25, rls[i].name);
@@ -200,11 +221,7 @@ void Widget::DealShowObjs(ObjdectRls rls)
     {
         showmsg msg;
         msg.camid = "工位:" + QString::number(showobjs[i].CAMID);
-        if(showobjs[i].withHat == 0)
-        {
-            msg.status = "未戴安全帽";
-            msg.warning = true;
-        }
+
         if(showobjs[i].OPFrame >= 20)
         {
             if(IsOperator(showobjs[i].name) == false)
@@ -222,6 +239,11 @@ void Widget::DealShowObjs(ObjdectRls rls)
         if(showobjs[i].CAMID == 1)
         {
             msg.status = "进入车间";
+        }
+        if(showobjs[i].withHat == 0)
+        {
+            msg.status = "未戴安全帽";
+            msg.warning = true;
         }
         msg.ttime = showobjs[i].captime.toString("HH:mm::ss");
         msg.img = showobjs[i].img;
@@ -388,11 +410,14 @@ void Widget::DealShowobjs(QList<ObjdectRls> list, int index)
             {
                 msg.warning = true;
                 msg.status = "违规操作";
+                Machine_Violation = true;
+                GotoMachine();
             }
             else
             {
                 msg.status = "操作CNC";
                 msg.warning = false;
+                Machine_Violation = false;
             }
 
         }
@@ -418,6 +443,53 @@ int Widget::IsInList(QString name)
     }
     return -1;
 }
+void Widget::DealTraceLst(ObjdectRls rls)
+{
+
+    bool exsit = false;
+    for(int m = 0; m < tracelst.count(); m++)
+    {
+        if(rls.ID == tracelst[m].objID)
+        {
+            exsit = true;
+            break;
+        }
+    }
+    if(exsit == false)
+    {
+        TraceInfo info;
+        info.objID = rls.ID;
+        info.frames = 0;
+        tracelst.append(info);
+    }
+
+}
+int Widget::GetCurrentTraceObj(QList<ObjdectRls> list)
+{
+    int count = list.count();
+    if(count == 0)
+    {
+        currentframes = 0;
+        return -1;
+    }
+    if(count == 1)
+    {
+        curtraceid = 0;
+        currentframes++;
+        return 0;
+    }
+    if(currentframes > 100)
+    {
+        curtraceid++;
+        if(curtraceid >= count)
+        {
+            curtraceid = 0;
+        }
+        currentframes = 0;
+    }
+    currentframes++;
+    return curtraceid;
+}
 void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
 {
     if(idx < 0 || idx > 3)
@@ -432,8 +504,56 @@ void Widget::recvObjDect(QList<ObjdectRls> list, int idx)
         objdects[idx].append(list[i]);
         //DealShowObjs(list[i]);
     }
+
+    if(idx == 2 && Machine_Violation == false)
+    {
+        int index = GetCurrentTraceObj(list);
+        qDebug() << "track id:"<< index <<endl;
+        if(index != -1)
+        {
+            int x = list[index].rect.x() + list[index].rect.width()/2;
+            int y = list[index].rect.y() + list[index].rect.height()/8;
+            int p = 832 + (x-480)*0.45625;
+            int t = -135 + (y - 270)*0.4259;
+            if( t < 0)
+            {
+                t = t + 3600;
+            }
+            NET_DVR_PTZPOS pos;
+            pos.wAction = 1;
+            pos.wPanPos = D2H(p);
+            pos.wTiltPos = D2H(t);
+            if(y < 500)
+                pos.wZoomPos = 0x40;
+            else
+                pos.wZoomPos = 0x30;
+            play_thd[3]->cam->SetPTZ(pos);
+        }
+    }
+
     DealShowobjs(list,idx);
     mutex.unlock();
+    /*if(idx == 2)
+    {
+
+        if(count != 0)
+        {
+            int x = list[0].rect.x() + list[0].rect.width()/2;
+            int y = list[0].rect.y() + list[0].rect.height()/8;
+            int p = 832 + (x-480)*0.45625;
+            int t = -135 + (y - 270)*0.4259;
+            if( t < 0)
+            {
+                t = t + 3600;
+            }
+            NET_DVR_PTZPOS pos;
+            pos.wAction = 1;
+            pos.wPanPos = D2H(p);
+            pos.wTiltPos = D2H(t);
+            pos.wZoomPos = 0x30;
+            play_thd[3]->cam->SetPTZ(pos);
+        }
+    }*/
     //int count = objdects[idx].count();
     /*int comcount = list.count();
     if(count == 0)
@@ -584,8 +704,8 @@ void Widget::sysStart()
     {
          play_thd[i] = new PlayLocalM4();
          connect(play_thd[i], &PlayLocalM4::message, this, &Widget::recvImg);
-         //play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
-         //play_thd[i]->start();
+         play_thd[i]->setRealPlay("132.120.136.54",8000,"admin","sipai_lab",1+i,false,0);  //CAMEREA ID 1234
+         play_thd[i]->start();
     }
 
     human_thd = new CHuamDectThd(0);
@@ -598,7 +718,9 @@ void Widget::sysStart()
     connect(human_thd, &CHuamDectThd::message, this, &Widget::recvObjDect);
     human_thd->start();
 
-    play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch01_20180905162901.mp4", 1);
+    //play_thd[3]->cam->AutoPan(0);
+
+    /*play_thd[0]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch01_20180905162901.mp4", 1);
     play_thd[1]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch02_20180905162901.mp4", 2);
     play_thd[2]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch03_20180905162901.mp4", 3);
     play_thd[3]->setPlayClient("/home/proj/lab/cam_data/SampleVideo/20180905/ch04_20180905162901.mp4", 4);
@@ -609,7 +731,7 @@ void Widget::sysStart()
     play_thd[0]->start();
     play_thd[1]->start();
     play_thd[2]->start();
-    play_thd[3]->start();
+    play_thd[3]->start();*/
 
 
 
@@ -708,4 +830,27 @@ void Widget::downShow()
         msg.id = showobjs[i].name;
         plab[i - showindex]->SetMsg(msg);
     }
+}
+int Widget::D2H(int d)
+{
+    int ret = 0;
+    int index = 0;
+    while(d != 0)
+    {
+        int x = d % 10;
+        ret += x * qPow(16, index);
+        d = d / 10;
+        index++;
+    }
+    return ret;
+}
+void Widget::GotoMachine()
+{
+    NET_DVR_PTZPOS pos;
+    pos.wAction = 1;
+    pos.wPanPos = 0x910;
+
+    pos.wTiltPos = 0x3500;
+    pos.wZoomPos = 0x30;
+    play_thd[3]->cam->SetPTZ(pos);
 }

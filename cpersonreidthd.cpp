@@ -192,7 +192,7 @@ void CPersonReIDThd::run()
     {
         if(newcome == false)
         {
-            msleep(100);
+            msleep(200);
             continue;
         }
         mutex.lock();
@@ -214,7 +214,7 @@ void CPersonReIDThd::run()
         ComparePerson(rlist[2], rlist[1], 3, elst[1]);
         emit SendReid(rlist[0], rlist[2]);
 
-        msleep(100);
+        msleep(200);
         if(stop_flag == true)
         {
             break;

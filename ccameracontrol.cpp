@@ -191,3 +191,18 @@ void CCameraControl::closeM4()
     if(fp != 0)
         fclose(fp);
 }
+
+void CCameraControl::AutoPan(int control)
+{
+    NET_DVR_PTZControl(lRealPlayHandle, PAN_AUTO, control);
+}
+
+void CCameraControl::SetPTZ(NET_DVR_PTZPOS m_ptzPos)
+{
+    bool ret = NET_DVR_SetDVRConfig(lUserID, NET_DVR_SET_PTZPOS, camid, &m_ptzPos, sizeof(NET_DVR_PTZPOS));
+    if(ret == FALSE)
+    {
+        auto a = NET_DVR_GetLastError();
+        qDebug() << a;
+    }
+}

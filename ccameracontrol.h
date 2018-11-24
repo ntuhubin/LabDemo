@@ -7,6 +7,7 @@
 #include "includeCn/PlayM4.h"
 #include <QObject>
 #include <string>
+#include <QDebug>
 using namespace std;
 
 
@@ -40,6 +41,9 @@ public:
     void CapImage(BYTE *buf, unsigned int dwsize, unsigned int &capsize);
     void closeM4();
     friend void CALLBACK g_DisplayCBFun(LONG nport, char *buf, LONG size, LONG w, LONG h, LONG nStamp, LONG nType, void *nReserved);
+public:
+    void AutoPan(int control);
+    void SetPTZ(NET_DVR_PTZPOS m_ptzPos);
 };
 
 #endif // CCAMERACONTROL_H

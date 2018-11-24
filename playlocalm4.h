@@ -27,10 +27,11 @@ public:
 private:
     unsigned int picsize;
     volatile bool stopflag;
-    CCameraControl* cam;
+
     int idd;
     //CFaceClassification *face;
-
+public:
+    CCameraControl* cam;
 private:
     void run();
 };

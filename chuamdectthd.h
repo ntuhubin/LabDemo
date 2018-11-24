@@ -65,6 +65,8 @@ private:
     CPersonReIDThd *personReid;
     CDbPro *db;
     QList<OPRecord> recordlst;
+    cv::Mat W2CM;
+    int hatsaveindex;
 
 private:
     void run();

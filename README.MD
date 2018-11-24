@@ -20,3 +20,5 @@ op record
 fix manitain
 2018-09-13
 Right show
+2018-11-24
+云台操作

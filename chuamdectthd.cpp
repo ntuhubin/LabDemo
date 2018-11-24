@@ -18,7 +18,10 @@ CHuamDectThd::CHuamDectThd(int idx):QThread()
     personReid->start();
 
     db = new CDbPro();
+
+    hatsaveindex = 0;
     curImg[0].load("test.jpg");
+    W2CM = publicFun::GetW2CM();
 
     qRegisterMetaType<QList<ObjdectRls>> ("QList<ObjdectRls>");
 }
@@ -82,7 +85,6 @@ void CHuamDectThd::recvFace(QList<ClsResult> dectresult)
         facePerson.append(rls);
         //QString filename = "/home/proj/lab/data/reid1/"+rls.name + ".jpg";
         //rls.img.save(filename);
-        mutex.unlock();
         return;
     }
     bool newcomer = true;
@@ -168,10 +170,8 @@ void CHuamDectThd::MultiPrepareReid()
     {
         return;
     }
-    for(int i = 0; i < facePerson.count(); i++)
-    {
-        rls[1].append(facePerson[i]);
-    }
+    rls[1].append(facePerson);
+
     for(int m = 0; m < maintainhuman[0].count(); m++)
     {
         if(maintainhuman[0][m].name == "")
@@ -315,10 +315,18 @@ int CHuamDectThd::DetectHuman(Mat img, QImage qimg, cv::Rect rc)
             objrls.LeaOPFrame = 0;
             objrls.withhatFrame = 0;
             objrls.withoutHatFrame = 0;
+            objrls.HatColor = -1;
             list[dectindex].append(objrls);
         }
         else if(objrls.ObjID == 3)  //an quan mao
-            hatlist[dectindex].append(objrls);
+        {
+            cv::Mat ROIImg = publicFun::QImageToMat(objrls.img);
+            /*QString savePath = "/home/proj/lab/data/hatimg/" + QString::number(hatsaveindex) + ".jpg";
+            hatsaveindex++;
+            objrls.img.save(savePath);*/
+            objrls.HatColor = publicFun::GetColorValues(ROIImg, W2CM);
+            hatlist[dectindex].append(objrls);            
+        }
       }
     return 0;
 }
@@ -337,12 +345,10 @@ void CHuamDectThd::run()
             cv::Mat mat = publicFun::QImageToMat(curImg[dectindex]);
             QImage qimg = curImg[dectindex].copy();
             mutex.unlock();
-            //QTime time;
-            //time.start();
 
             DetectHuman(mat, qimg, rc[dectindex]);
-            //qDebug()<<time.elapsed()/1000.0<<"s";
             CheckHat();
+
             mutex.lock();
             MaintainObj_3();
 
@@ -372,7 +378,7 @@ void CHuamDectThd::run()
         {
             break;
         }
-        msleep(50);
+        msleep(80);
     }
 }
 void CHuamDectThd::MaintainObj_3()
@@ -459,6 +465,7 @@ void CHuamDectThd::MaintainObj_3()
         maintainhuman[dectindex][it->cm].Hist = list[dectindex][it->cd].Hist;
         maintainhuman[dectindex][it->cm].rect = list[dectindex][it->cd].rect;
         maintainhuman[dectindex][it->cm].img = list[dectindex][it->cd].img;
+        maintainhuman[dectindex][it->cm].HatColor = list[dectindex][it->cd].HatColor;
         maintainhuman[dectindex][it->cm].withHat = 1;
         if(list[dectindex][it->cd].withHat == 0)
         {
@@ -895,6 +902,7 @@ void CHuamDectThd::CheckHat()
             if(ret == 1)
             {
                 list[dectindex][i].withHat = 1;
+                list[dectindex][i].HatColor = hatlist[dectindex][j].HatColor;
                 break;
             }
         }
